@@ -101,7 +101,7 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
         const { row, col } = parseAddress(editingCell);
         let left = 48; // row header width
         for (let c = 0; c < col; c++) left += getColumnWidth(c);
-        const top = rowHeight + row * rowHeight; // column header height + row offset
+        const top = row * rowHeight;
         return { left, top };
       })()
     : null;
@@ -110,7 +110,7 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
     <div
       ref={containerRef}
       data-fancy-sheets-grid=""
-      className={cn("relative flex-1 overflow-auto bg-white focus:outline-none dark:bg-zinc-900", className)}
+      className={cn("relative min-h-0 flex-1 overflow-auto bg-white focus:outline-none dark:bg-zinc-900", className)}
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >

@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect } from "react";
+import { useMemo, useCallback, useEffect, useRef } from "react";
 import { cn } from "@particle-academy/react-fancy";
 import { SpreadsheetContext } from "./Spreadsheet.context";
 import { useSpreadsheetStore } from "../../hooks/use-spreadsheet-store";
@@ -23,17 +23,28 @@ function SpreadsheetRoot({
   readOnly = false,
 }: SpreadsheetProps) {
   const { state, actions } = useSpreadsheetStore(data ?? defaultData);
+  const onChangeRef = useRef(onChange);
+  const isExternalSync = useRef(false);
+  const prevDataRef = useRef(data);
+  onChangeRef.current = onChange;
 
-  // Sync controlled data
+  // Sync controlled data from parent
   useEffect(() => {
-    if (data && data !== state.workbook) {
+    if (data && data !== prevDataRef.current && data !== state.workbook) {
+      isExternalSync.current = true;
       actions.setWorkbook(data);
+      prevDataRef.current = data;
     }
   }, [data]);
 
-  // Notify parent of changes
+  // Notify parent of internal changes only
   useEffect(() => {
-    onChange?.(state.workbook);
+    if (isExternalSync.current) {
+      isExternalSync.current = false;
+      return;
+    }
+    prevDataRef.current = state.workbook;
+    onChangeRef.current?.(state.workbook);
   }, [state.workbook]);
 
   const activeSheet = useMemo(
@@ -90,7 +101,7 @@ function SpreadsheetRoot({
     <SpreadsheetContext.Provider value={ctx}>
       <div
         data-fancy-sheets=""
-        className={cn("flex flex-col overflow-hidden", className)}
+        className={cn("flex h-full flex-col overflow-hidden", className)}
       >
         {children}
       </div>

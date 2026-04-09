@@ -17,7 +17,7 @@ export function SelectionOverlay() {
       let width = 0;
       for (let c = s.col; c <= e.col; c++) width += getColumnWidth(c);
 
-      const top = rowHeight + s.row * rowHeight; // column header height + rows
+      const top = s.row * rowHeight;
       const height = (e.row - s.row + 1) * rowHeight;
 
       return { left, top, width, height, isPrimary: i === 0 };

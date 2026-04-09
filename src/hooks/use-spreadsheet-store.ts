@@ -22,9 +22,17 @@ export interface SpreadsheetState {
   redoStack: WorkbookData[];
 }
 
-function createInitialState(data?: WorkbookData): SpreadsheetState {
+function recalculateWorkbook(workbook: WorkbookData): WorkbookData {
   return {
-    workbook: data ?? createEmptyWorkbook(),
+    ...workbook,
+    sheets: workbook.sheets.map(recalculateSheet),
+  };
+}
+
+function createInitialState(data?: WorkbookData): SpreadsheetState {
+  const workbook = data ?? createEmptyWorkbook();
+  return {
+    workbook: recalculateWorkbook(workbook),
     selection: { activeCell: "A1", ranges: [{ start: "A1", end: "A1" }] },
     editingCell: null,
     editValue: "",
