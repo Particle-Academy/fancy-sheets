@@ -3,6 +3,8 @@ export type FormulaTokenType =
   | "string"
   | "cellRef"
   | "rangeRef"
+  | "sheetCellRef"
+  | "sheetRangeRef"
   | "function"
   | "operator"
   | "paren"
@@ -21,6 +23,8 @@ export type FormulaASTNode =
   | { type: "boolean"; value: boolean }
   | { type: "cellRef"; address: string }
   | { type: "rangeRef"; start: string; end: string }
+  | { type: "sheetCellRef"; sheet: string; address: string }
+  | { type: "sheetRangeRef"; sheet: string; start: string; end: string }
   | { type: "functionCall"; name: string; args: FormulaASTNode[] }
   | { type: "binaryOp"; operator: string; left: FormulaASTNode; right: FormulaASTNode }
   | { type: "unaryOp"; operator: string; operand: FormulaASTNode };

@@ -1,7 +1,7 @@
 import { useCallback, memo } from "react";
 import { cn } from "@particle-academy/react-fancy";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
-import type { CellData } from "../../types/cell";
+import type { CellData, CellValue } from "../../types/cell";
 
 interface CellProps {
   address: string;
@@ -9,11 +9,60 @@ interface CellProps {
   col: number;
 }
 
+const EXCEL_EPOCH = new Date(1899, 11, 30).getTime();
+
+function serialToDateStr(serial: number): string {
+  const d = new Date(EXCEL_EPOCH + Math.floor(serial) * 86400000);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function serialToDateTimeStr(serial: number): string {
+  const date = serialToDateStr(serial);
+  const fraction = serial % 1;
+  const totalSeconds = Math.round(fraction * 86400);
+  const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const min = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const s = String(totalSeconds % 60).padStart(2, "0");
+  return `${date} ${h}:${min}:${s}`;
+}
+
+/** Detect if a formula likely returns a date based on the formula name */
+function isDateFormula(formula: string | undefined): boolean {
+  if (!formula) return false;
+  const f = formula.toUpperCase();
+  return /^(TODAY|NOW|DATE|EDATE)\b/.test(f) || /\b(TODAY|NOW|DATE|EDATE)\s*\(/.test(f);
+}
+
+function formatCellValue(val: CellValue, cell: CellData | undefined): string {
+  if (val === null || val === undefined) return "";
+  const fmt = cell?.format?.displayFormat;
+
+  if (typeof val === "number") {
+    // Explicit format
+    if (fmt === "date") return serialToDateStr(val);
+    if (fmt === "datetime") return serialToDateTimeStr(val);
+    if (fmt === "percentage") return (val * 100).toFixed(1) + "%";
+    if (fmt === "currency") return "$" + val.toFixed(2);
+
+    // Auto-detect date from formula
+    if (fmt === "auto" || !fmt) {
+      if (cell?.formula && isDateFormula(cell.formula)) {
+        return val % 1 === 0 ? serialToDateStr(val) : serialToDateTimeStr(val);
+      }
+    }
+  }
+
+  if (typeof val === "boolean") return val ? "TRUE" : "FALSE";
+  return String(val);
+}
+
 function getCellDisplayValue(cell: CellData | undefined): string {
   if (!cell) return "";
-  if (cell.formula && cell.computedValue !== undefined) return String(cell.computedValue ?? "");
-  if (cell.value === null) return "";
-  return String(cell.value);
+  const val = cell.formula && cell.computedValue !== undefined ? cell.computedValue : cell.value;
+  return formatCellValue(val, cell);
 }
 
 export const Cell = memo(function Cell({ address, row, col }: CellProps) {

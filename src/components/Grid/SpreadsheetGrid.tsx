@@ -121,17 +121,42 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
 
       {/* Rows */}
       <div className="relative">
-        {Array.from({ length: rowCount }, (_, rowIdx) => (
-          <div key={rowIdx} className="flex">
-            <div className="sticky left-0 z-[5]">
-              <RowHeader rowIndex={rowIdx} />
+        {Array.from({ length: rowCount }, (_, rowIdx) => {
+          const isFrozenRow = rowIdx < activeSheet.frozenRows;
+          return (
+            <div
+              key={rowIdx}
+              className="flex"
+              style={isFrozenRow ? {
+                position: "sticky",
+                top: rowHeight + rowIdx * rowHeight,
+                zIndex: 8,
+                backgroundColor: "inherit",
+              } : undefined}
+            >
+              <div className="sticky left-0 z-[5]">
+                <RowHeader rowIndex={rowIdx} />
+              </div>
+              {Array.from({ length: columnCount }, (_, colIdx) => {
+                const addr = toAddress(rowIdx, colIdx);
+                const isFrozenCol = colIdx < activeSheet.frozenCols;
+                return (
+                  <div
+                    key={addr}
+                    style={isFrozenCol ? {
+                      position: "sticky",
+                      left: 48 + Array.from({ length: colIdx }, (_, c) => getColumnWidth(c)).reduce((a, b) => a + b, 0),
+                      zIndex: isFrozenRow ? 9 : 6,
+                      backgroundColor: "inherit",
+                    } : undefined}
+                  >
+                    <Cell address={addr} row={rowIdx} col={colIdx} />
+                  </div>
+                );
+              })}
             </div>
-            {Array.from({ length: columnCount }, (_, colIdx) => {
-              const addr = toAddress(rowIdx, colIdx);
-              return <Cell key={addr} address={addr} row={rowIdx} col={colIdx} />;
-            })}
-          </div>
-        ))}
+          );
+        })}
 
         {/* Selection overlay */}
         <SelectionOverlay />

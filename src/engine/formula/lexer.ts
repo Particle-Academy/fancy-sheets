@@ -37,16 +37,53 @@ export function lexFormula(input: string): FormulaToken[] {
       continue;
     }
 
-    // Identifier (cell ref, range ref, function name, or boolean)
+    // Identifier (cell ref, range ref, sheet ref, function name, or boolean)
     if ((ch >= "A" && ch <= "Z") || (ch >= "a" && ch <= "z") || ch === "_") {
       const pos = i;
       i++;
-      while (i < len && ((input[i] >= "A" && input[i] <= "Z") || (input[i] >= "a" && input[i] <= "z") || (input[i] >= "0" && input[i] <= "9") || input[i] === "_")) i++;
-      const word = input.slice(pos, i);
+      // Allow spaces in sheet names when followed by !
+      while (i < len && ((input[i] >= "A" && input[i] <= "Z") || (input[i] >= "a" && input[i] <= "z") || (input[i] >= "0" && input[i] <= "9") || input[i] === "_" || input[i] === " ")) {
+        // Only allow spaces if they're part of a sheet name (followed eventually by !)
+        if (input[i] === " ") {
+          let lookAhead = i + 1;
+          while (lookAhead < len && input[lookAhead] === " ") lookAhead++;
+          // Check if after the spaces there's more identifier chars followed by !
+          if (lookAhead < len && ((input[lookAhead] >= "A" && input[lookAhead] <= "Z") || (input[lookAhead] >= "a" && input[lookAhead] <= "z") || (input[lookAhead] >= "0" && input[lookAhead] <= "9") || input[lookAhead] === "!")) {
+            i++;
+            continue;
+          }
+          break;
+        }
+        i++;
+      }
+      let word = input.slice(pos, i).trimEnd();
+      i = pos + word.length;
 
       // Boolean
       if (word.toUpperCase() === "TRUE" || word.toUpperCase() === "FALSE") {
         tokens.push({ type: "boolean", value: word.toUpperCase(), position: pos });
+        continue;
+      }
+
+      // Cross-sheet reference: SheetName!CellRef or SheetName!Range
+      if (i < len && input[i] === "!") {
+        const sheetName = word;
+        i++; // skip !
+        const refStart = i;
+        while (i < len && ((input[i] >= "A" && input[i] <= "Z") || (input[i] >= "a" && input[i] <= "z") || (input[i] >= "0" && input[i] <= "9"))) i++;
+        const ref1 = input.slice(refStart, i);
+
+        if (i < len && input[i] === ":") {
+          // Sheet range ref: Sheet1!A1:B5
+          i++;
+          const ref2Start = i;
+          while (i < len && ((input[i] >= "A" && input[i] <= "Z") || (input[i] >= "a" && input[i] <= "z") || (input[i] >= "0" && input[i] <= "9"))) i++;
+          const ref2 = input.slice(ref2Start, i);
+          tokens.push({ type: "sheetRangeRef", value: sheetName + "!" + ref1 + ":" + ref2, position: pos });
+        } else {
+          // Sheet cell ref: Sheet1!A1
+          tokens.push({ type: "sheetCellRef", value: sheetName + "!" + ref1.toUpperCase(), position: pos });
+        }
         continue;
       }
 
@@ -60,7 +97,6 @@ export function lexFormula(input: string): FormulaToken[] {
           tokens.push({ type: "rangeRef", value: word + ":" + input.slice(rangeStart, i), position: pos });
           continue;
         }
-        // Not a range, backtrack
         i = colonPos;
       }
 

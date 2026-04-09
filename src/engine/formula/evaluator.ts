@@ -14,11 +14,21 @@ import "./functions/info";
 
 export type CellValueGetter = (address: string) => CellValue;
 export type RangeValueGetter = (start: string, end: string) => CellValue[];
+export type SheetCellValueGetter = (sheetName: string, address: string) => CellValue;
+export type SheetRangeValueGetter = (sheetName: string, start: string, end: string) => CellValue[];
+
+export interface EvaluatorContext {
+  getCellValue: CellValueGetter;
+  getRangeValues: RangeValueGetter;
+  getSheetCellValue?: SheetCellValueGetter;
+  getSheetRangeValues?: SheetRangeValueGetter;
+}
 
 export function evaluateAST(
   node: FormulaASTNode,
   getCellValue: CellValueGetter,
   getRangeValues: RangeValueGetter,
+  ctx?: { getSheetCellValue?: SheetCellValueGetter; getSheetRangeValues?: SheetRangeValueGetter },
 ): CellValue {
   switch (node.type) {
     case "number":
@@ -31,21 +41,35 @@ export function evaluateAST(
     case "cellRef":
       return getCellValue(node.address);
 
-    case "rangeRef":
-      // Ranges by themselves return the first value (used in non-function context)
+    case "rangeRef": {
       const vals = getRangeValues(node.start, node.end);
       return vals[0] ?? null;
+    }
+
+    case "sheetCellRef": {
+      if (!ctx?.getSheetCellValue) return "#REF!";
+      return ctx.getSheetCellValue(node.sheet, node.address);
+    }
+
+    case "sheetRangeRef": {
+      if (!ctx?.getSheetRangeValues) return "#REF!";
+      const vals = ctx.getSheetRangeValues(node.sheet, node.start, node.end);
+      return vals[0] ?? null;
+    }
 
     case "functionCall": {
       const entry = getFunction(node.name);
       if (!entry) return `#NAME?`;
 
-      // Evaluate args — range refs pass as arrays, everything else as single-element arrays
       const argValues: CellValue[][] = node.args.map((arg) => {
         if (arg.type === "rangeRef") {
           return getRangeValues(arg.start, arg.end);
         }
-        const val = evaluateAST(arg, getCellValue, getRangeValues);
+        if (arg.type === "sheetRangeRef") {
+          if (!ctx?.getSheetRangeValues) return ["#REF!" as CellValue];
+          return ctx.getSheetRangeValues(arg.sheet, arg.start, arg.end);
+        }
+        const val = evaluateAST(arg, getCellValue, getRangeValues, ctx);
         return [val];
       });
 
@@ -57,8 +81,8 @@ export function evaluateAST(
     }
 
     case "binaryOp": {
-      const left = evaluateAST(node.left, getCellValue, getRangeValues);
-      const right = evaluateAST(node.right, getCellValue, getRangeValues);
+      const left = evaluateAST(node.left, getCellValue, getRangeValues, ctx);
+      const right = evaluateAST(node.right, getCellValue, getRangeValues, ctx);
 
       const lNum = typeof left === "number" ? left : Number(left);
       const rNum = typeof right === "number" ? right : Number(right);
@@ -81,7 +105,7 @@ export function evaluateAST(
     }
 
     case "unaryOp": {
-      const operand = evaluateAST(node.operand, getCellValue, getRangeValues);
+      const operand = evaluateAST(node.operand, getCellValue, getRangeValues, ctx);
       const num = typeof operand === "number" ? operand : Number(operand);
       if (isNaN(num)) return "#VALUE!";
       return node.operator === "-" ? -num : num;

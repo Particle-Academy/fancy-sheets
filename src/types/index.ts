@@ -1,4 +1,4 @@
-export type { CellAddress, CellValue, CellData, CellFormat, TextAlign } from "./cell";
+export type { CellAddress, CellValue, CellData, CellFormat, CellDisplayFormat, TextAlign } from "./cell";
 export type { CellMap, ColumnWidths, MergedRegion, SheetData, WorkbookData } from "./sheet";
 export { createEmptySheet, createEmptyWorkbook } from "./sheet";
 export type { CellRange, SelectionState } from "./selection";

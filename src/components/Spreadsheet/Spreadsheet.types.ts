@@ -54,6 +54,8 @@ export interface SpreadsheetContextValue {
   renameSheet: (sheetId: string, name: string) => void;
   deleteSheet: (sheetId: string) => void;
   setActiveSheet: (sheetId: string) => void;
+  setFrozenRows: (count: number) => void;
+  setFrozenCols: (count: number) => void;
   undo: () => void;
   redo: () => void;
   canUndo: boolean;

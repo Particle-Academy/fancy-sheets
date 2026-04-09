@@ -123,6 +123,23 @@ export function parseFormula(tokens: FormulaToken[]): FormulaASTNode {
       return { type: "rangeRef", start: parts[0], end: parts[1] };
     }
 
+    // Cross-sheet cell reference (Sheet1!A1)
+    if (t.type === "sheetCellRef") {
+      advance();
+      const bangIdx = t.value.indexOf("!");
+      return { type: "sheetCellRef", sheet: t.value.slice(0, bangIdx), address: t.value.slice(bangIdx + 1).toUpperCase() };
+    }
+
+    // Cross-sheet range reference (Sheet1!A1:B5)
+    if (t.type === "sheetRangeRef") {
+      advance();
+      const bangIdx = t.value.indexOf("!");
+      const sheetName = t.value.slice(0, bangIdx);
+      const rangePart = t.value.slice(bangIdx + 1);
+      const parts = rangePart.split(":");
+      return { type: "sheetRangeRef", sheet: sheetName, start: parts[0].toUpperCase(), end: parts[1].toUpperCase() };
+    }
+
     // Function call
     if (t.type === "function") {
       const name = advance().value;

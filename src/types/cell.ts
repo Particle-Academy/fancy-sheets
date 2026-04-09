@@ -7,11 +7,16 @@ export type CellValue = string | number | boolean | null;
 /** Text alignment */
 export type TextAlign = "left" | "center" | "right";
 
+/** Display format for cell values */
+export type CellDisplayFormat = "auto" | "text" | "number" | "date" | "datetime" | "percentage" | "currency";
+
 /** Cell formatting */
 export interface CellFormat {
   bold?: boolean;
   italic?: boolean;
   textAlign?: TextAlign;
+  /** Display format — controls how the value is rendered */
+  displayFormat?: CellDisplayFormat;
 }
 
 /** A single cell's complete data */

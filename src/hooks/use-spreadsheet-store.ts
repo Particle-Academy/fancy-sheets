@@ -25,7 +25,7 @@ export interface SpreadsheetState {
 function recalculateWorkbook(workbook: WorkbookData): WorkbookData {
   return {
     ...workbook,
-    sheets: workbook.sheets.map(recalculateSheet),
+    sheets: workbook.sheets.map((s) => recalculateSheet(s, workbook.sheets)),
   };
 }
 
@@ -62,6 +62,8 @@ type Action =
   | { type: "RENAME_SHEET"; sheetId: string; name: string }
   | { type: "DELETE_SHEET"; sheetId: string }
   | { type: "SET_ACTIVE_SHEET"; sheetId: string }
+  | { type: "SET_FROZEN_ROWS"; count: number }
+  | { type: "SET_FROZEN_COLS"; count: number }
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "SET_WORKBOOK"; workbook: WorkbookData };
@@ -89,8 +91,8 @@ function pushUndo(state: SpreadsheetState): { undoStack: WorkbookData[]; redoSta
   return { undoStack: stack, redoStack: [] };
 }
 
-/** Recalculate all formula cells in a sheet */
-function recalculateSheet(sheet: SheetData): SheetData {
+/** Recalculate all formula cells in a sheet, with cross-sheet reference support */
+function recalculateSheet(sheet: SheetData, allSheets?: SheetData[]): SheetData {
   const graph = buildDependencyGraph(sheet.cells);
   if (graph.size === 0) return sheet;
 
@@ -110,6 +112,32 @@ function recalculateSheet(sheet: SheetData): SheetData {
     return addresses.map(getCellValue);
   };
 
+  // Cross-sheet getters
+  const getSheetCellValue = (sheetName: string, addr: string): CellValue => {
+    if (!allSheets) return "#REF!";
+    const target = allSheets.find((s) => s.name === sheetName || s.id === sheetName);
+    if (!target) return "#REF!";
+    const c = target.cells[addr];
+    if (!c) return null;
+    if (c.formula && c.computedValue !== undefined) return c.computedValue;
+    return c.value;
+  };
+
+  const getSheetRangeValues = (sheetName: string, startAddr: string, endAddr: string): CellValue[] => {
+    if (!allSheets) return [];
+    const target = allSheets.find((s) => s.name === sheetName || s.id === sheetName);
+    if (!target) return [];
+    const addresses = expandRange(startAddr, endAddr);
+    return addresses.map((a) => {
+      const c = target.cells[a];
+      if (!c) return null;
+      if (c.formula && c.computedValue !== undefined) return c.computedValue;
+      return c.value;
+    });
+  };
+
+  const ctx = { getSheetCellValue, getSheetRangeValues };
+
   for (const addr of order) {
     const cell = cells[addr];
     if (!cell?.formula) continue;
@@ -122,7 +150,7 @@ function recalculateSheet(sheet: SheetData): SheetData {
     try {
       const tokens = lexFormula(cell.formula);
       const ast = parseFormula(tokens);
-      const result = evaluateAST(ast, getCellValue, getRangeValues);
+      const result = evaluateAST(ast, getCellValue, getRangeValues, ctx);
       cells[addr] = { ...cell, computedValue: result };
     } catch {
       cells[addr] = { ...cell, computedValue: "#ERROR!" };
@@ -159,7 +187,7 @@ function reducer(state: SpreadsheetState, action: Action): SpreadsheetState {
 
       const workbook = updateActiveSheet(state, (s) => {
         const updated = { ...s, cells: { ...s.cells, [action.address]: cellData } };
-        return recalculateSheet(updated);
+        return recalculateSheet(updated, state.workbook.sheets);
       });
 
       return { ...state, workbook, ...history };
@@ -327,6 +355,20 @@ function reducer(state: SpreadsheetState, action: Action): SpreadsheetState {
         editingCell: null,
       };
 
+    case "SET_FROZEN_ROWS": {
+      const workbook = updateActiveSheet(state, (s) => ({
+        ...s, frozenRows: Math.max(0, action.count),
+      }));
+      return { ...state, workbook };
+    }
+
+    case "SET_FROZEN_COLS": {
+      const workbook = updateActiveSheet(state, (s) => ({
+        ...s, frozenCols: Math.max(0, action.count),
+      }));
+      return { ...state, workbook };
+    }
+
     case "UNDO": {
       if (state.undoStack.length === 0) return state;
       const prev = state.undoStack[state.undoStack.length - 1];
@@ -380,6 +422,8 @@ export function useSpreadsheetStore(initialData?: WorkbookData) {
     addSheet: () => dispatch({ type: "ADD_SHEET" }),
     renameSheet: (sheetId: string, name: string) => dispatch({ type: "RENAME_SHEET", sheetId, name }),
     deleteSheet: (sheetId: string) => dispatch({ type: "DELETE_SHEET", sheetId }),
+    setFrozenRows: (count: number) => dispatch({ type: "SET_FROZEN_ROWS", count }),
+    setFrozenCols: (count: number) => dispatch({ type: "SET_FROZEN_COLS", count }),
     setActiveSheet: (sheetId: string) => dispatch({ type: "SET_ACTIVE_SHEET", sheetId }),
     undo: () => dispatch({ type: "UNDO" }),
     redo: () => dispatch({ type: "REDO" }),
