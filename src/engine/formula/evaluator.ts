@@ -7,6 +7,10 @@ import { parseAddress, toAddress } from "../cell-utils";
 import "./functions/math";
 import "./functions/text";
 import "./functions/logic";
+import "./functions/conditional";
+import "./functions/lookup";
+import "./functions/datetime";
+import "./functions/info";
 
 export type CellValueGetter = (address: string) => CellValue;
 export type RangeValueGetter = (start: string, end: string) => CellValue[];

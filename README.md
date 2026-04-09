@@ -187,31 +187,63 @@ Type `=` in any cell to enter a formula. The engine supports cell references, ra
 | Comparison | `=A1>10` | Operators: `=`, `<>`, `<`, `>`, `<=`, `>=` |
 | Concatenation | `=A1&" "&B1` | String join with `&` |
 
-### Built-in Functions
+### Built-in Functions (80+)
 
-**Math:**
+**Math (25):**
 
 | Function | Example | Description |
 |----------|---------|-------------|
 | `SUM` | `=SUM(A1:A10)` | Sum of values |
 | `AVERAGE` | `=AVERAGE(B1:B5)` | Mean of values |
+| `MEDIAN` | `=MEDIAN(A1:A10)` | Median value |
 | `MIN` | `=MIN(C1:C10)` | Minimum value |
 | `MAX` | `=MAX(C1:C10)` | Maximum value |
 | `COUNT` | `=COUNT(A1:A20)` | Count of numeric values |
+| `PRODUCT` | `=PRODUCT(A1:A5)` | Multiply all values |
 | `ROUND` | `=ROUND(A1, 2)` | Round to N decimals |
 | `ABS` | `=ABS(A1)` | Absolute value |
+| `SQRT` | `=SQRT(A1)` | Square root |
+| `POWER` | `=POWER(2,10)` | Exponentiation |
+| `MOD` | `=MOD(10,3)` | Remainder |
+| `INT` | `=INT(3.7)` | Round down to integer |
+| `TRUNC` | `=TRUNC(3.789,1)` | Truncate decimals |
+| `FLOOR` | `=FLOOR(2.7,1)` | Round down to multiple |
+| `CEILING` | `=CEILING(2.1,1)` | Round up to multiple |
+| `SIGN` | `=SIGN(-5)` | Returns -1, 0, or 1 |
+| `FACT` | `=FACT(5)` | Factorial (120) |
+| `PI` | `=PI()` | 3.14159... |
+| `EXP` | `=EXP(1)` | e^n |
+| `LN` | `=LN(10)` | Natural logarithm |
+| `LOG` | `=LOG(100,10)` | Logarithm (default base 10) |
+| `LOG10` | `=LOG10(1000)` | Base-10 logarithm |
+| `RAND` | `=RAND()` | Random 0-1 |
+| `RANDBETWEEN` | `=RANDBETWEEN(1,100)` | Random integer |
 
-**Text:**
+**Text (19):**
 
 | Function | Example | Description |
 |----------|---------|-------------|
-| `UPPER` | `=UPPER(A1)` | Convert to uppercase |
-| `LOWER` | `=LOWER(A1)` | Convert to lowercase |
+| `UPPER` | `=UPPER(A1)` | Uppercase |
+| `LOWER` | `=LOWER(A1)` | Lowercase |
+| `PROPER` | `=PROPER("hello world")` | Title Case |
 | `LEN` | `=LEN(A1)` | String length |
-| `TRIM` | `=TRIM(A1)` | Remove leading/trailing whitespace |
-| `CONCAT` | `=CONCAT(A1,B1,C1)` | Join values |
+| `TRIM` | `=TRIM(A1)` | Remove whitespace |
+| `LEFT` | `=LEFT(A1,3)` | First N characters |
+| `RIGHT` | `=RIGHT(A1,3)` | Last N characters |
+| `MID` | `=MID(A1,2,3)` | Substring from position |
+| `FIND` | `=FIND("x",A1)` | Case-sensitive position |
+| `SEARCH` | `=SEARCH("x",A1)` | Case-insensitive position |
+| `SUBSTITUTE` | `=SUBSTITUTE(A1,"old","new")` | Replace text |
+| `REPLACE` | `=REPLACE(A1,2,3,"xyz")` | Replace by position |
+| `CONCAT` | `=CONCAT(A1,B1)` | Join values |
+| `REPT` | `=REPT("*",5)` | Repeat string |
+| `EXACT` | `=EXACT(A1,B1)` | Case-sensitive compare |
+| `VALUE` | `=VALUE("42")` | Text to number |
+| `TEXT` | `=TEXT(0.5,"0%")` | Format number as text |
+| `CHAR` | `=CHAR(65)` | Character from code |
+| `CODE` | `=CODE("A")` | Code of first character |
 
-**Logic:**
+**Logic (8):**
 
 | Function | Example | Description |
 |----------|---------|-------------|
@@ -219,6 +251,64 @@ Type `=` in any cell to enter a formula. The engine supports cell references, ra
 | `AND` | `=AND(A1>0,B1>0)` | All conditions true |
 | `OR` | `=OR(A1>0,B1>0)` | Any condition true |
 | `NOT` | `=NOT(A1)` | Negate boolean |
+| `IFERROR` | `=IFERROR(A1/B1,0)` | Fallback on error |
+| `IFBLANK` | `=IFBLANK(A1,"N/A")` | Fallback if empty |
+| `SWITCH` | `=SWITCH(A1,1,"One",2,"Two")` | Multi-case conditional |
+| `CHOOSE` | `=CHOOSE(2,"a","b","c")` | Select by index |
+
+**Conditional Aggregates (8):**
+
+| Function | Example | Description |
+|----------|---------|-------------|
+| `SUMIF` | `=SUMIF(A1:A10,">5",B1:B10)` | Conditional sum |
+| `SUMIFS` | `=SUMIFS(C1:C10,A1:A10,">5",B1:B10,"<10")` | Multi-criteria sum |
+| `COUNTIF` | `=COUNTIF(A1:A10,"Yes")` | Conditional count |
+| `COUNTIFS` | `=COUNTIFS(A1:A10,">5",B1:B10,"<10")` | Multi-criteria count |
+| `AVERAGEIF` | `=AVERAGEIF(A1:A10,">0")` | Conditional average |
+| `AVERAGEIFS` | `=AVERAGEIFS(C1:C10,A1:A10,">5")` | Multi-criteria average |
+| `MINIFS` | `=MINIFS(C1:C10,A1:A10,">5")` | Conditional min |
+| `MAXIFS` | `=MAXIFS(C1:C10,A1:A10,">5")` | Conditional max |
+
+**Lookup (8):**
+
+| Function | Example | Description |
+|----------|---------|-------------|
+| `VLOOKUP` | `=VLOOKUP(key,A1:C10,3)` | Vertical lookup |
+| `HLOOKUP` | `=HLOOKUP(key,A1:Z3,2)` | Horizontal lookup |
+| `INDEX` | `=INDEX(A1:A10,3)` | Value at position |
+| `MATCH` | `=MATCH("x",A1:A10)` | Find position of value |
+| `ROWS` | `=ROWS(A1:A10)` | Count rows in range |
+| `COLUMNS` | `=COLUMNS(A1:C1)` | Count columns in range |
+| `ROW` | `=ROW(A5)` | Row number |
+| `COLUMN` | `=COLUMN(C1)` | Column number |
+
+**Date/Time (12):**
+
+| Function | Example | Description |
+|----------|---------|-------------|
+| `TODAY` | `=TODAY()` | Current date (serial) |
+| `NOW` | `=NOW()` | Current date+time (serial) |
+| `DATE` | `=DATE(2024,6,15)` | Create date |
+| `YEAR` | `=YEAR(A1)` | Extract year |
+| `MONTH` | `=MONTH(A1)` | Extract month |
+| `DAY` | `=DAY(A1)` | Extract day |
+| `HOUR` | `=HOUR(A1)` | Extract hour |
+| `MINUTE` | `=MINUTE(A1)` | Extract minute |
+| `SECOND` | `=SECOND(A1)` | Extract second |
+| `WEEKDAY` | `=WEEKDAY(A1)` | Day of week (1-7) |
+| `DATEDIF` | `=DATEDIF(A1,B1,"M")` | Date difference |
+| `EDATE` | `=EDATE(A1,3)` | Date + N months |
+
+**Info (6):**
+
+| Function | Example | Description |
+|----------|---------|-------------|
+| `ISBLANK` | `=ISBLANK(A1)` | Is empty |
+| `ISNUMBER` | `=ISNUMBER(A1)` | Is numeric |
+| `ISTEXT` | `=ISTEXT(A1)` | Is text |
+| `ISERROR` | `=ISERROR(A1)` | Is error value |
+| `ISLOGICAL` | `=ISLOGICAL(A1)` | Is boolean |
+| `TYPE` | `=TYPE(A1)` | Type code (1=num, 2=text, 4=bool, 16=error) |
 
 ### Custom Functions
 

@@ -27,3 +27,34 @@ registerFunction("OR", (args) => {
 registerFunction("NOT", (args) => {
   return !toBool(args.flat()[0]);
 });
+
+registerFunction("IFERROR", (args) => {
+  const flat = args.flat();
+  const val = flat[0];
+  if (typeof val === "string" && val.startsWith("#")) return flat[1] ?? "";
+  return val;
+});
+
+registerFunction("IFBLANK", (args) => {
+  const flat = args.flat();
+  const val = flat[0];
+  if (val === null || val === undefined || val === "") return flat[1] ?? "";
+  return val;
+});
+
+registerFunction("SWITCH", (args) => {
+  const flat = args.flat();
+  const expr = flat[0];
+  for (let i = 1; i < flat.length - 1; i += 2) {
+    if (flat[i] === expr) return flat[i + 1];
+  }
+  // Last arg is default if odd number of remaining args
+  return flat.length % 2 === 0 ? flat[flat.length - 1] : "#N/A";
+});
+
+registerFunction("CHOOSE", (args) => {
+  const flat = args.flat();
+  const index = Number(flat[0]);
+  if (isNaN(index) || index < 1 || index >= flat.length) return "#VALUE!";
+  return flat[index];
+});
