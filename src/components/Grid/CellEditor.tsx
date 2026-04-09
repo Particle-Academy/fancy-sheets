@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
 import { parseAddress } from "../../engine/cell-utils";
 
@@ -11,21 +11,27 @@ export function CellEditor() {
     cancelEdit,
     getColumnWidth,
     rowHeight,
-    activeSheet,
   } = useSpreadsheet();
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const mountedAt = useRef(0);
 
   useEffect(() => {
     if (editingCell && inputRef.current) {
+      mountedAt.current = Date.now();
       inputRef.current.focus();
-      inputRef.current.select();
     }
   }, [editingCell]);
 
+  const handleBlur = useCallback(() => {
+    // Ignore blur within 100ms of mount to avoid double-click race condition
+    if (Date.now() - mountedAt.current < 100) return;
+    confirmEdit();
+  }, [confirmEdit]);
+
   if (!editingCell) return null;
 
-  const { row, col } = parseAddress(editingCell);
+  const { col } = parseAddress(editingCell);
   const width = getColumnWidth(col);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -50,7 +56,7 @@ export function CellEditor() {
       value={editValue}
       onChange={(e) => updateEdit(e.target.value)}
       onKeyDown={handleKeyDown}
-      onBlur={confirmEdit}
+      onBlur={handleBlur}
     />
   );
 }
