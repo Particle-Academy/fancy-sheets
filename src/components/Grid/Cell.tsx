@@ -79,6 +79,7 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
     getColumnWidth,
     isCellSelected,
     isCellActive,
+    _isDragging,
   } = useSpreadsheet();
 
   const cell = activeSheet.cells[address];
@@ -90,6 +91,7 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      if (e.button !== 0) return;
       if (e.shiftKey) {
         extendSelection(address);
       } else if (e.ctrlKey || e.metaKey) {
@@ -97,9 +99,20 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
       } else {
         setSelection(address);
       }
+      _isDragging.current = true;
     },
-    [address, setSelection, extendSelection, addSelection],
+    [address, setSelection, extendSelection, addSelection, _isDragging],
   );
+
+  const handleMouseEnter = useCallback(() => {
+    if (_isDragging.current) {
+      extendSelection(address);
+    }
+  }, [address, extendSelection, _isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    _isDragging.current = false;
+  }, [_isDragging]);
 
   const handleDoubleClick = useCallback(() => {
     if (readOnly) return;
@@ -118,12 +131,14 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
       data-active={isActive || undefined}
       role="gridcell"
       className={cn(
-        "relative flex items-center truncate border-r border-b border-zinc-200 bg-white px-1.5 text-[13px] dark:border-zinc-700 dark:bg-zinc-900",
+        "relative flex items-center truncate border-r border-b border-zinc-200 bg-white px-1.5 text-[13px] select-none dark:border-zinc-700 dark:bg-zinc-900",
         isActive && "ring-2 ring-inset ring-blue-500",
         isSelected && !isActive && "bg-blue-50 dark:bg-blue-950/40",
       )}
       style={{ width, minWidth: width, height: rowHeight, ...formatStyle }}
       onMouseDown={handleMouseDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseUp={handleMouseUp}
       onDoubleClick={handleDoubleClick}
     >
       {!isEditing && <span className="truncate">{displayValue}</span>}

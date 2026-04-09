@@ -75,6 +75,8 @@ function SpreadsheetRoot({
     [state.selection.activeCell],
   );
 
+  const isDraggingRef = useRef(false);
+
   const ctx = useMemo<SpreadsheetContextValue>(
     () => ({
       workbook: state.workbook,
@@ -93,6 +95,7 @@ function SpreadsheetRoot({
       getColumnWidth,
       isCellSelected,
       isCellActive,
+      _isDragging: isDraggingRef,
     }),
     [state, activeSheet, columnCount, rowCount, defaultColumnWidth, rowHeight, readOnly, actions, getColumnWidth, isCellSelected, isCellActive],
   );

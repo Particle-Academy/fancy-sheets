@@ -65,4 +65,6 @@ export interface SpreadsheetContextValue {
   getColumnWidth: (col: number) => number;
   isCellSelected: (address: string) => boolean;
   isCellActive: (address: string) => boolean;
+  /** @internal drag-to-select state */
+  _isDragging: React.RefObject<boolean>;
 }

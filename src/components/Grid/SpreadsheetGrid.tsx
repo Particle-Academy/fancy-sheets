@@ -30,6 +30,7 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
     setCellValue,
     setFrozenRows,
     setFrozenCols,
+    extendSelection,
     undo,
     redo,
   } = useSpreadsheet();

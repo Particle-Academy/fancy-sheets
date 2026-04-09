@@ -4,12 +4,12 @@ import { columnToLetter, toAddress, parseAddress } from "../../engine/cell-utils
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
 
 export function ColumnHeaders() {
-  const { columnCount, rowCount, rowHeight, getColumnWidth, selection, selectRange } = useSpreadsheet();
+  const { columnCount, rowCount, rowHeight, getColumnWidth, selection, selectRange, _isDragging } = useSpreadsheet();
 
-  const handleColumnClick = useCallback(
+  const handleColumnMouseDown = useCallback(
     (colIdx: number, e: React.MouseEvent) => {
+      if (e.button !== 0) return;
       if (e.shiftKey) {
-        // Extend from active cell's column to this column
         const activeCol = parseAddress(selection.activeCell).col;
         const minCol = Math.min(activeCol, colIdx);
         const maxCol = Math.max(activeCol, colIdx);
@@ -17,9 +17,26 @@ export function ColumnHeaders() {
       } else {
         selectRange(toAddress(0, colIdx), toAddress(rowCount - 1, colIdx));
       }
+      _isDragging.current = true;
     },
-    [rowCount, selectRange, selection.activeCell],
+    [rowCount, selectRange, selection.activeCell, _isDragging],
   );
+
+  const handleColumnMouseEnter = useCallback(
+    (colIdx: number) => {
+      if (_isDragging.current) {
+        const activeCol = parseAddress(selection.activeCell).col;
+        const minCol = Math.min(activeCol, colIdx);
+        const maxCol = Math.max(activeCol, colIdx);
+        selectRange(toAddress(0, minCol), toAddress(rowCount - 1, maxCol));
+      }
+    },
+    [rowCount, selection.activeCell, selectRange, _isDragging],
+  );
+
+  const handleMouseUp = useCallback(() => {
+    _isDragging.current = false;
+  }, [_isDragging]);
 
   return (
     <div
@@ -38,7 +55,9 @@ export function ColumnHeaders() {
           key={i}
           className="relative flex shrink-0 cursor-pointer items-center justify-center border-r border-zinc-300 text-[11px] font-medium text-zinc-500 select-none hover:bg-zinc-200 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700"
           style={{ width: getColumnWidth(i), minWidth: getColumnWidth(i) }}
-          onClick={(e) => handleColumnClick(i, e)}
+          onMouseDown={(e) => handleColumnMouseDown(i, e)}
+          onMouseEnter={() => handleColumnMouseEnter(i)}
+          onMouseUp={handleMouseUp}
         >
           {columnToLetter(i)}
           <ColumnResizeHandle colIndex={i} />
