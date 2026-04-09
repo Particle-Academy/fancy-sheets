@@ -1,10 +1,11 @@
 import { useCallback } from "react";
+import { cn } from "@particle-academy/react-fancy";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
 import { columnToLetter, toAddress, parseAddress } from "../../engine/cell-utils";
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
 
 export function ColumnHeaders() {
-  const { columnCount, rowCount, rowHeight, getColumnWidth, selection, selectRange, _isDragging } = useSpreadsheet();
+  const { columnCount, rowCount, rowHeight, getColumnWidth, selection, selectRange, _isDragging, isCellSelected } = useSpreadsheet();
 
   const handleColumnMouseDown = useCallback(
     (colIdx: number, e: React.MouseEvent) => {
@@ -50,19 +51,27 @@ export function ColumnHeaders() {
         style={{ width: 48, minWidth: 48 }}
       />
       {/* Column letters */}
-      {Array.from({ length: columnCount }, (_, i) => (
-        <div
-          key={i}
-          className="relative flex shrink-0 cursor-pointer items-center justify-center border-r border-zinc-300 text-[11px] font-medium text-zinc-500 select-none hover:bg-zinc-200 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700"
-          style={{ width: getColumnWidth(i), minWidth: getColumnWidth(i) }}
-          onMouseDown={(e) => handleColumnMouseDown(i, e)}
-          onMouseEnter={() => handleColumnMouseEnter(i)}
-          onMouseUp={handleMouseUp}
-        >
-          {columnToLetter(i)}
-          <ColumnResizeHandle colIndex={i} />
-        </div>
-      ))}
+      {Array.from({ length: columnCount }, (_, i) => {
+        const isColSelected = isCellSelected(toAddress(0, i));
+        return (
+          <div
+            key={i}
+            className={cn(
+              "relative flex shrink-0 cursor-pointer items-center justify-center border-r border-zinc-300 text-[11px] font-medium select-none hover:bg-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-700",
+              isColSelected
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                : "text-zinc-500 dark:text-zinc-400",
+            )}
+            style={{ width: getColumnWidth(i), minWidth: getColumnWidth(i) }}
+            onMouseDown={(e) => handleColumnMouseDown(i, e)}
+            onMouseEnter={() => handleColumnMouseEnter(i)}
+            onMouseUp={handleMouseUp}
+          >
+            {columnToLetter(i)}
+            <ColumnResizeHandle colIndex={i} />
+          </div>
+        );
+      })}
     </div>
   );
 }

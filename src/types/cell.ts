@@ -17,6 +17,8 @@ export interface CellFormat {
   textAlign?: TextAlign;
   /** Display format — controls how the value is rendered */
   displayFormat?: CellDisplayFormat;
+  /** Number of decimal places to display (for number/currency/percentage) */
+  decimals?: number;
 }
 
 /** A single cell's complete data */

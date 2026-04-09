@@ -34,6 +34,8 @@ function DefaultToolbar() {
   const isBold = cell?.format?.bold ?? false;
   const isItalic = cell?.format?.italic ?? false;
   const textAlign = cell?.format?.textAlign ?? "left";
+  const displayFormat = cell?.format?.displayFormat ?? "auto";
+  const decimals = cell?.format?.decimals;
 
   const selectedAddresses = [selection.activeCell];
 
@@ -150,6 +152,40 @@ function DefaultToolbar() {
             <line x1="14" y1="3" x2="14" y2="21" strokeDasharray="3 3" />
             <line x1="19" y1="3" x2="19" y2="21" strokeDasharray="3 3" />
           </svg>
+        </button>
+        <div className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+        <select
+          className="h-6 rounded border border-zinc-200 bg-transparent px-1 text-[11px] text-zinc-600 outline-none hover:border-zinc-300 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600"
+          value={displayFormat}
+          onChange={(e) => setCellFormat(selectedAddresses, { displayFormat: e.target.value as any })}
+          disabled={readOnly}
+          title="Cell format"
+        >
+          <option value="auto">Auto</option>
+          <option value="text">Text</option>
+          <option value="number">Number</option>
+          <option value="currency">Currency ($)</option>
+          <option value="percentage">Percentage (%)</option>
+          <option value="date">Date</option>
+          <option value="datetime">Date & Time</option>
+        </select>
+        <button
+          className={btnClass}
+          onClick={() => setCellFormat(selectedAddresses, { decimals: Math.max(0, (decimals ?? 0) - 1) })}
+          disabled={readOnly || (decimals ?? 0) <= 0}
+          title="Decrease decimal places"
+        >
+          <span className="text-[10px]">.0</span>
+          <span className="text-[8px]">←</span>
+        </button>
+        <button
+          className={btnClass}
+          onClick={() => setCellFormat(selectedAddresses, { decimals: (decimals ?? 0) + 1 })}
+          disabled={readOnly}
+          title="Increase decimal places"
+        >
+          <span className="text-[10px]">.00</span>
+          <span className="text-[8px]">→</span>
         </button>
       </div>
 

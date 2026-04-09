@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-sheets",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Spreadsheet editor with formula engine, multi-sheet tabs, and full cell editing",
   "type": "module",
   "main": "./dist/index.cjs",

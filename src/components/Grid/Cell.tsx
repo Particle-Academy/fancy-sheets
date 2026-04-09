@@ -29,11 +29,14 @@ function serialToDateTimeStr(serial: number): string {
   return `${date} ${h}:${min}:${s}`;
 }
 
-/** Detect if a formula likely returns a date based on the formula name */
+/** Detect if a formula's OUTERMOST function returns a date serial.
+ *  YEAR(DATE(...)) should NOT be detected — YEAR returns a plain number.
+ *  Only detect when the formula starts with a date-producing function. */
 function isDateFormula(formula: string | undefined): boolean {
   if (!formula) return false;
-  const f = formula.toUpperCase();
-  return /^(TODAY|NOW|DATE|EDATE)\b/.test(f) || /\b(TODAY|NOW|DATE|EDATE)\s*\(/.test(f);
+  const f = formula.trim().toUpperCase();
+  // Must START with a date-producing function (not nested inside another)
+  return /^(TODAY|NOW|DATE|EDATE)\s*\(/.test(f);
 }
 
 function formatCellValue(val: CellValue, cell: CellData | undefined): string {
@@ -41,17 +44,22 @@ function formatCellValue(val: CellValue, cell: CellData | undefined): string {
   const fmt = cell?.format?.displayFormat;
 
   if (typeof val === "number") {
+    const dec = cell?.format?.decimals;
+
     // Explicit format
     if (fmt === "date") return serialToDateStr(val);
     if (fmt === "datetime") return serialToDateTimeStr(val);
-    if (fmt === "percentage") return (val * 100).toFixed(1) + "%";
-    if (fmt === "currency") return "$" + val.toFixed(2);
+    if (fmt === "percentage") return (val * 100).toFixed(dec ?? 1) + "%";
+    if (fmt === "currency") return "$" + val.toFixed(dec ?? 2);
+    if (fmt === "number" && dec !== undefined) return val.toFixed(dec);
 
     // Auto-detect date from formula
     if (fmt === "auto" || !fmt) {
       if (cell?.formula && isDateFormula(cell.formula)) {
         return val % 1 === 0 ? serialToDateStr(val) : serialToDateTimeStr(val);
       }
+      // Apply decimals even in auto mode
+      if (dec !== undefined) return val.toFixed(dec);
     }
   }
 
