@@ -23,10 +23,18 @@ export interface SpreadsheetState {
 }
 
 function recalculateWorkbook(workbook: WorkbookData): WorkbookData {
-  return {
-    ...workbook,
-    sheets: workbook.sheets.map((s) => recalculateSheet(s, workbook.sheets)),
-  };
+  // Recalculate sequentially so cross-sheet refs see already-computed values
+  const recalculated: SheetData[] = [];
+  for (const sheet of workbook.sheets) {
+    recalculated.push(recalculateSheet(sheet, recalculated));
+  }
+  // Second pass: recalculate again with ALL sheets computed
+  // (handles reverse-order cross-sheet refs like Sheet1 referencing Sheet3)
+  const finalSheets: SheetData[] = [];
+  for (const sheet of recalculated) {
+    finalSheets.push(recalculateSheet(sheet, recalculated));
+  }
+  return { ...workbook, sheets: finalSheets };
 }
 
 function createInitialState(data?: WorkbookData): SpreadsheetState {
@@ -185,10 +193,11 @@ function reducer(state: SpreadsheetState, action: Action): SpreadsheetState {
       const existing = sheet.cells[action.address];
       if (existing?.format) cellData.format = existing.format;
 
-      const workbook = updateActiveSheet(state, (s) => {
-        const updated = { ...s, cells: { ...s.cells, [action.address]: cellData } };
-        return recalculateSheet(updated, state.workbook.sheets);
-      });
+      // Update the cell, then recalculate ALL sheets (cross-sheet refs may depend on this)
+      const updatedWorkbook = updateActiveSheet(state, (s) => ({
+        ...s, cells: { ...s.cells, [action.address]: cellData },
+      }));
+      const workbook = recalculateWorkbook(updatedWorkbook);
 
       return { ...state, workbook, ...history };
     }
