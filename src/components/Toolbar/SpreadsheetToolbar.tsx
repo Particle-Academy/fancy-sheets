@@ -35,7 +35,20 @@ function DefaultToolbar() {
   const isItalic = cell?.format?.italic ?? false;
   const textAlign = cell?.format?.textAlign ?? "left";
   const displayFormat = cell?.format?.displayFormat ?? "auto";
-  const decimals = cell?.format?.decimals;
+  const explicitDecimals = cell?.format?.decimals;
+
+  // Detect actual decimal places from the cell's current value
+  const cellValue = cell?.computedValue ?? cell?.value;
+  const inferredDecimals = (() => {
+    if (explicitDecimals !== undefined) return explicitDecimals;
+    if (typeof cellValue === "number") {
+      const str = String(cellValue);
+      const dotIdx = str.indexOf(".");
+      return dotIdx === -1 ? 0 : str.length - dotIdx - 1;
+    }
+    return 0;
+  })();
+  const currentDecimals = explicitDecimals ?? inferredDecimals;
 
   const selectedAddresses = [selection.activeCell];
 
@@ -171,18 +184,18 @@ function DefaultToolbar() {
         </select>
         <button
           className={btnClass}
-          onClick={() => setCellFormat(selectedAddresses, { decimals: Math.max(0, (decimals ?? 0) - 1) })}
-          disabled={readOnly || (decimals ?? 0) <= 0}
-          title="Decrease decimal places"
+          onClick={() => setCellFormat(selectedAddresses, { decimals: Math.max(0, currentDecimals - 1) })}
+          disabled={readOnly || currentDecimals <= 0}
+          title={`Decrease decimal places (currently ${currentDecimals})`}
         >
           <span className="text-[10px]">.0</span>
           <span className="text-[8px]">←</span>
         </button>
         <button
           className={btnClass}
-          onClick={() => setCellFormat(selectedAddresses, { decimals: (decimals ?? 0) + 1 })}
+          onClick={() => setCellFormat(selectedAddresses, { decimals: currentDecimals + 1 })}
           disabled={readOnly}
-          title="Increase decimal places"
+          title={`Increase decimal places (currently ${currentDecimals})`}
         >
           <span className="text-[10px]">.00</span>
           <span className="text-[8px]">→</span>
