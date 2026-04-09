@@ -1,5 +1,5 @@
-import { useCallback, useRef } from "react";
-import { cn } from "@particle-academy/react-fancy";
+import { useCallback, useRef, useState } from "react";
+import { cn, ContextMenu } from "@particle-academy/react-fancy";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
 import { ColumnHeaders } from "./ColumnHeaders";
 import { RowHeader } from "./RowHeaders";
@@ -28,6 +28,8 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
     confirmEdit,
     cancelEdit,
     setCellValue,
+    setFrozenRows,
+    setFrozenCols,
     undo,
     redo,
   } = useSpreadsheet();
@@ -106,72 +108,129 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
       })()
     : null;
 
+  const handleCopy = useCallback(() => {
+    const range = selection.ranges[0];
+    if (range) {
+      const tsv = cellsToTSV(activeSheet.cells, range);
+      navigator.clipboard.writeText(tsv);
+    }
+  }, [selection, activeSheet]);
+
+  const handlePaste = useCallback(() => {
+    navigator.clipboard.readText().then((text) => {
+      if (!text) return;
+      const { values } = tsvToCells(text);
+      const { row: startRow, col: startCol } = parseAddress(selection.activeCell);
+      for (let r = 0; r < values.length; r++) {
+        for (let c = 0; c < values[r].length; c++) {
+          setCellValue(toAddress(startRow + r, startCol + c), values[r][c]);
+        }
+      }
+    });
+  }, [selection, setCellValue]);
+
+  const handleClearSelection = useCallback(() => {
+    const range = selection.ranges[0];
+    if (!range) return;
+    const { start, end } = range;
+    const s = parseAddress(start);
+    const e = parseAddress(end);
+    const minR = Math.min(s.row, e.row), maxR = Math.max(s.row, e.row);
+    const minC = Math.min(s.col, e.col), maxC = Math.max(s.col, e.col);
+    for (let r = minR; r <= maxR; r++) {
+      for (let c = minC; c <= maxC; c++) {
+        setCellValue(toAddress(r, c), "");
+      }
+    }
+  }, [selection, setCellValue]);
+
   return (
-    <div
-      ref={containerRef}
-      data-fancy-sheets-grid=""
-      className={cn("relative min-h-0 flex-1 overflow-auto bg-white focus:outline-none dark:bg-zinc-900", className)}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-    >
-      {/* Column headers */}
-      <div className="sticky top-0 z-10">
-        <ColumnHeaders />
-      </div>
-
-      {/* Rows */}
-      <div className="relative">
-        {Array.from({ length: rowCount }, (_, rowIdx) => {
-          const isFrozenRow = rowIdx < activeSheet.frozenRows;
-          return (
-            <div
-              key={rowIdx}
-              className="flex"
-              style={isFrozenRow ? {
-                position: "sticky",
-                top: rowHeight + rowIdx * rowHeight,
-                zIndex: 8,
-                backgroundColor: "inherit",
-              } : undefined}
-            >
-              <div className="sticky left-0 z-[5]">
-                <RowHeader rowIndex={rowIdx} />
-              </div>
-              {Array.from({ length: columnCount }, (_, colIdx) => {
-                const addr = toAddress(rowIdx, colIdx);
-                const isFrozenCol = colIdx < activeSheet.frozenCols;
-                return (
-                  <div
-                    key={addr}
-                    style={isFrozenCol ? {
-                      position: "sticky",
-                      left: 48 + Array.from({ length: colIdx }, (_, c) => getColumnWidth(c)).reduce((a, b) => a + b, 0),
-                      zIndex: isFrozenRow ? 9 : 6,
-                      backgroundColor: "inherit",
-                    } : undefined}
-                  >
-                    <Cell address={addr} row={rowIdx} col={colIdx} />
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
-
-        {/* Selection overlay */}
-        <SelectionOverlay />
-
-        {/* Cell editor overlay */}
-        {editorPosition && (
-          <div
-            className="absolute z-20"
-            style={{ left: editorPosition.left, top: editorPosition.top }}
-          >
-            <CellEditor />
+    <ContextMenu>
+      <ContextMenu.Trigger className="min-h-0 flex-1">
+        <div
+          ref={containerRef}
+          data-fancy-sheets-grid=""
+          className={cn("relative h-full overflow-auto bg-white focus:outline-none dark:bg-zinc-900", className)}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+        >
+          {/* Column headers */}
+          <div className="sticky top-0 z-10">
+            <ColumnHeaders />
           </div>
-        )}
-      </div>
-    </div>
+
+          {/* Rows */}
+          <div className="relative">
+            {Array.from({ length: rowCount }, (_, rowIdx) => {
+              const isFrozenRow = rowIdx < activeSheet.frozenRows;
+              return (
+                <div
+                  key={rowIdx}
+                  className="flex"
+                  style={isFrozenRow ? {
+                    position: "sticky",
+                    top: rowHeight + rowIdx * rowHeight,
+                    zIndex: 8,
+                  } : undefined}
+                >
+                  <div className="sticky left-0 z-[5]">
+                    <RowHeader rowIndex={rowIdx} />
+                  </div>
+                  {Array.from({ length: columnCount }, (_, colIdx) => {
+                    const addr = toAddress(rowIdx, colIdx);
+                    const isFrozenCol = colIdx < activeSheet.frozenCols;
+                    return (
+                      <div
+                        key={addr}
+                        style={isFrozenCol ? {
+                          position: "sticky",
+                          left: 48 + Array.from({ length: colIdx }, (_, c) => getColumnWidth(c)).reduce((a, b) => a + b, 0),
+                          zIndex: isFrozenRow ? 9 : 6,
+                        } : undefined}
+                      >
+                        <Cell address={addr} row={rowIdx} col={colIdx} />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+
+            {/* Selection overlay */}
+            <SelectionOverlay />
+
+            {/* Cell editor overlay */}
+            {editorPosition && (
+              <div
+                className="absolute z-20"
+                style={{ left: editorPosition.left, top: editorPosition.top }}
+              >
+                <CellEditor />
+              </div>
+            )}
+          </div>
+        </div>
+      </ContextMenu.Trigger>
+      <ContextMenu.Content>
+        <ContextMenu.Item onClick={handleCopy}>Copy</ContextMenu.Item>
+        <ContextMenu.Item onClick={handlePaste} disabled={readOnly}>Paste</ContextMenu.Item>
+        <ContextMenu.Separator />
+        <ContextMenu.Item onClick={handleClearSelection} disabled={readOnly}>Clear cells</ContextMenu.Item>
+        <ContextMenu.Separator />
+        <ContextMenu.Item onClick={() => {
+          const row = parseAddress(selection.activeCell).row;
+          setFrozenRows(activeSheet.frozenRows > 0 ? 0 : row);
+        }} disabled={readOnly}>
+          {activeSheet.frozenRows > 0 ? "Unfreeze rows" : "Freeze rows above"}
+        </ContextMenu.Item>
+        <ContextMenu.Item onClick={() => {
+          const col = parseAddress(selection.activeCell).col;
+          setFrozenCols(activeSheet.frozenCols > 0 ? 0 : col);
+        }} disabled={readOnly}>
+          {activeSheet.frozenCols > 0 ? "Unfreeze columns" : "Freeze columns left"}
+        </ContextMenu.Item>
+      </ContextMenu.Content>
+    </ContextMenu>
   );
 }
 

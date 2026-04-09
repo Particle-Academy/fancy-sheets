@@ -1,19 +1,28 @@
 import { useCallback } from "react";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
-import { toAddress } from "../../engine/cell-utils";
+import { toAddress, parseAddress } from "../../engine/cell-utils";
 
 interface RowHeadersProps {
   rowIndex: number;
 }
 
 export function RowHeader({ rowIndex }: RowHeadersProps) {
-  const { rowHeight, columnCount, selectRange } = useSpreadsheet();
+  const { rowHeight, columnCount, selection, selectRange, extendSelection } = useSpreadsheet();
 
-  const handleClick = useCallback(() => {
-    const start = toAddress(rowIndex, 0);
-    const end = toAddress(rowIndex, columnCount - 1);
-    selectRange(start, end);
-  }, [rowIndex, columnCount, selectRange]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.shiftKey) {
+        // Extend selection from active cell's row to this row
+        const activeRow = parseAddress(selection.activeCell).row;
+        const minRow = Math.min(activeRow, rowIndex);
+        const maxRow = Math.max(activeRow, rowIndex);
+        selectRange(toAddress(minRow, 0), toAddress(maxRow, columnCount - 1));
+      } else {
+        selectRange(toAddress(rowIndex, 0), toAddress(rowIndex, columnCount - 1));
+      }
+    },
+    [rowIndex, columnCount, selectRange, selection.activeCell],
+  );
 
   return (
     <div
