@@ -8,10 +8,18 @@ interface RowHeadersProps {
 }
 
 export function RowHeader({ rowIndex }: RowHeadersProps) {
-  const { rowHeight, columnCount, selection, selectRange, _isDragging, isCellSelected } = useSpreadsheet();
+  const { rowHeight, columnCount, selection, selectRange, _isDragging } = useSpreadsheet();
 
-  // Check if this row is part of the selection
-  const isRowSelected = isCellSelected(toAddress(rowIndex, 0));
+  // Only highlight if the ENTIRE row is selected (selection spans all columns)
+  const isRowSelected = selection.ranges.some((range) => {
+    const s = parseAddress(range.start);
+    const e = parseAddress(range.end);
+    const minRow = Math.min(s.row, e.row);
+    const maxRow = Math.max(s.row, e.row);
+    const minCol = Math.min(s.col, e.col);
+    const maxCol = Math.max(s.col, e.col);
+    return rowIndex >= minRow && rowIndex <= maxRow && minCol === 0 && maxCol >= columnCount - 1;
+  });
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {

@@ -5,7 +5,7 @@ import { columnToLetter, toAddress, parseAddress } from "../../engine/cell-utils
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
 
 export function ColumnHeaders() {
-  const { columnCount, rowCount, rowHeight, getColumnWidth, selection, selectRange, _isDragging, isCellSelected } = useSpreadsheet();
+  const { columnCount, rowCount, rowHeight, getColumnWidth, selection, selectRange, _isDragging } = useSpreadsheet();
 
   const handleColumnMouseDown = useCallback(
     (colIdx: number, e: React.MouseEvent) => {
@@ -52,7 +52,16 @@ export function ColumnHeaders() {
       />
       {/* Column letters */}
       {Array.from({ length: columnCount }, (_, i) => {
-        const isColSelected = isCellSelected(toAddress(0, i));
+        // Only highlight if the ENTIRE column is selected (spans all rows)
+        const isColSelected = selection.ranges.some((range) => {
+          const s = parseAddress(range.start);
+          const e = parseAddress(range.end);
+          const minCol = Math.min(s.col, e.col);
+          const maxCol = Math.max(s.col, e.col);
+          const minRow = Math.min(s.row, e.row);
+          const maxRow = Math.max(s.row, e.row);
+          return i >= minCol && i <= maxCol && minRow === 0 && maxRow >= rowCount - 1;
+        });
         return (
           <div
             key={i}
