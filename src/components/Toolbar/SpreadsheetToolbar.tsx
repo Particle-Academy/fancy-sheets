@@ -21,6 +21,8 @@ function DefaultToolbar() {
     confirmEdit,
     startEdit,
     setCellFormat,
+    setFrozenRows,
+    setFrozenCols,
     undo,
     redo,
     canUndo,
@@ -101,6 +103,54 @@ function DefaultToolbar() {
             </svg>
           </button>
         ))}
+        <div className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+        <button
+          className={cn(btnClass, activeSheet.frozenRows > 0 && activeBtnClass)}
+          onClick={() => {
+            if (activeSheet.frozenRows > 0) {
+              setFrozenRows(0);
+            } else {
+              // Freeze rows above the active cell
+              const row = selection.activeCell.match(/\d+/);
+              setFrozenRows(row ? parseInt(row[0], 10) - 1 || 1 : 1);
+            }
+          }}
+          disabled={readOnly}
+          title={activeSheet.frozenRows > 0 ? `Unfreeze rows (${activeSheet.frozenRows} frozen)` : "Freeze rows above current cell"}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="3" y1="9" x2="21" y2="9" />
+            <line x1="3" y1="4" x2="21" y2="4" />
+            <line x1="3" y1="14" x2="21" y2="14" strokeDasharray="3 3" />
+            <line x1="3" y1="19" x2="21" y2="19" strokeDasharray="3 3" />
+          </svg>
+        </button>
+        <button
+          className={cn(btnClass, activeSheet.frozenCols > 0 && activeBtnClass)}
+          onClick={() => {
+            if (activeSheet.frozenCols > 0) {
+              setFrozenCols(0);
+            } else {
+              // Freeze cols left of the active cell
+              const colMatch = selection.activeCell.match(/^([A-Z]+)/);
+              if (colMatch) {
+                const col = colMatch[1].split("").reduce((acc, ch) => acc * 26 + ch.charCodeAt(0) - 64, 0) - 1;
+                setFrozenCols(col || 1);
+              } else {
+                setFrozenCols(1);
+              }
+            }
+          }}
+          disabled={readOnly}
+          title={activeSheet.frozenCols > 0 ? `Unfreeze columns (${activeSheet.frozenCols} frozen)` : "Freeze columns left of current cell"}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="9" y1="3" x2="9" y2="21" />
+            <line x1="4" y1="3" x2="4" y2="21" />
+            <line x1="14" y1="3" x2="14" y2="21" strokeDasharray="3 3" />
+            <line x1="19" y1="3" x2="19" y2="21" strokeDasharray="3 3" />
+          </svg>
+        </button>
       </div>
 
       {/* Formula bar */}

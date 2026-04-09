@@ -1,9 +1,19 @@
+import { useCallback } from "react";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
-import { columnToLetter } from "../../engine/cell-utils";
+import { columnToLetter, toAddress } from "../../engine/cell-utils";
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
 
 export function ColumnHeaders() {
-  const { columnCount, rowHeight, getColumnWidth } = useSpreadsheet();
+  const { columnCount, rowCount, rowHeight, getColumnWidth, selectRange } = useSpreadsheet();
+
+  const handleColumnClick = useCallback(
+    (colIdx: number) => {
+      const start = toAddress(0, colIdx);
+      const end = toAddress(rowCount - 1, colIdx);
+      selectRange(start, end);
+    },
+    [rowCount, selectRange],
+  );
 
   return (
     <div
@@ -20,8 +30,9 @@ export function ColumnHeaders() {
       {Array.from({ length: columnCount }, (_, i) => (
         <div
           key={i}
-          className="relative flex shrink-0 items-center justify-center border-r border-zinc-300 text-[11px] font-medium text-zinc-500 select-none dark:border-zinc-600 dark:text-zinc-400"
+          className="relative flex shrink-0 cursor-pointer items-center justify-center border-r border-zinc-300 text-[11px] font-medium text-zinc-500 select-none hover:bg-zinc-200 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700"
           style={{ width: getColumnWidth(i), minWidth: getColumnWidth(i) }}
+          onClick={() => handleColumnClick(i)}
         >
           {columnToLetter(i)}
           <ColumnResizeHandle colIndex={i} />

@@ -44,6 +44,7 @@ export interface SpreadsheetContextValue {
   setSelection: (cell: string) => void;
   extendSelection: (cell: string) => void;
   addSelection: (cell: string) => void;
+  selectRange: (start: string, end: string) => void;
   navigate: (direction: "up" | "down" | "left" | "right", extend?: boolean) => void;
   startEdit: (value?: string) => void;
   updateEdit: (value: string) => void;
