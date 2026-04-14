@@ -15,25 +15,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
-      # Install with --no-frozen-lockfile because the package has no lockfile.
-      # peer-dep `@particle-academy/react-fancy` is `workspace:*`, but since
-      # this checkout is the package on its own (not the monorepo), pnpm will
-      # resolve it from the published npm version.
+      # The package uses `workspace:*` for @particle-academy/react-fancy in
+      # devDependencies (resolved via pnpm in the monorepo). Standalone CI
+      # has no workspace, so rewrite the protocol to a plain version range.
+      - name: Rewrite workspace protocol
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
+              if (!pkg[section]) continue;
+              for (const [name, version] of Object.entries(pkg[section])) {
+                if (typeof version === 'string' && version.startsWith('workspace:')) {
+                  pkg[section][name] = version.slice('workspace:'.length);
+                }
+              }
+            }
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
       - name: Install
-        run: pnpm install --no-frozen-lockfile
+        run: npm install --no-audit --no-fund
 
       - name: Build
-        run: pnpm run build
+        run: npm run build
 
-      # `pnpm publish` rewrites `workspace:*` to the resolved version range.
       - name: Publish
-        run: pnpm publish --provenance --access public --no-git-checks
+        run: npm publish --provenance --access public
