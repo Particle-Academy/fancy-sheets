@@ -15,16 +15,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
+      # Install with --no-frozen-lockfile because the package has no lockfile.
+      # peer-dep `@particle-academy/react-fancy` is `workspace:*`, but since
+      # this checkout is the package on its own (not the monorepo), pnpm will
+      # resolve it from the published npm version.
       - name: Install
-        run: npm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
+      # `pnpm publish` rewrites `workspace:*` to the resolved version range.
       - name: Publish
-        run: npm publish --provenance --access public
+        run: pnpm publish --provenance --access public --no-git-checks
