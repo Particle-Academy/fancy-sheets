@@ -20,10 +20,6 @@ jobs:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
-      # npm Trusted Publishing (OIDC) requires npm 11.5.1 or later.
-      - name: Upgrade npm
-        run: npm install -g npm@latest
-
       # The package uses `workspace:*` for @particle-academy/react-fancy in
       # devDependencies (resolved via pnpm in the monorepo). Standalone CI
       # has no workspace, so rewrite the protocol to a plain version range.
@@ -49,5 +45,7 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Trusted Publishing (OIDC) requires npm 11.5.1+; bundled npm in
+      # the runner is 10.x. Use npx to fetch a fresh npm just for publish.
       - name: Publish
-        run: npm publish --provenance --access public
+        run: npx -y npm@latest publish --provenance --access public
