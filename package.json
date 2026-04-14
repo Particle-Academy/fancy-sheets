@@ -2,6 +2,12 @@
   "name": "@particle-academy/fancy-sheets",
   "version": "0.4.6",
   "description": "Spreadsheet editor with formula engine, multi-sheet tabs, and full cell editing",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Particle-Academy/fancy-sheets.git"
+  },
+  "homepage": "https://github.com/Particle-Academy/fancy-sheets#readme",
+  "bugs": "https://github.com/Particle-Academy/fancy-sheets/issues",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -21,6 +27,7 @@
   },
   "files": [
     "dist",
+    "docs",
     "README.md"
   ],
   "scripts": {
