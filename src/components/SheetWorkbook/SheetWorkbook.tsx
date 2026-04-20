@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Spreadsheet } from "../Spreadsheet/Spreadsheet";
 import type { WorkbookData } from "../../types/sheet";
 import type { SpreadsheetContextMenuItem } from "../Spreadsheet/Spreadsheet.types";
+import type { ToolbarButton } from "../Toolbar/SpreadsheetToolbar";
 
 export interface SheetWorkbookProps {
   /** Controlled workbook data */
@@ -27,6 +28,8 @@ export interface SheetWorkbookProps {
   hideTabs?: boolean;
   /** Extra content appended to the default toolbar */
   toolbarExtra?: ReactNode;
+  /** Which built-in toolbar buttons to show (default: all). Pass [] for only custom extra. */
+  toolbarButtons?: ToolbarButton[];
   /** Custom context menu items */
   contextMenuItems?: SpreadsheetContextMenuItem[] | ((address: string) => SpreadsheetContextMenuItem[]);
 }
@@ -35,12 +38,13 @@ export function SheetWorkbook({
   hideToolbar = false,
   hideTabs = false,
   toolbarExtra,
+  toolbarButtons,
   contextMenuItems,
   ...props
 }: SheetWorkbookProps) {
   return (
     <Spreadsheet {...props} contextMenuItems={contextMenuItems}>
-      {!hideToolbar && <Spreadsheet.Toolbar extra={toolbarExtra} />}
+      {!hideToolbar && <Spreadsheet.Toolbar extra={toolbarExtra} buttons={toolbarButtons} />}
       <Spreadsheet.Grid />
       {!hideTabs && <Spreadsheet.SheetTabs />}
     </Spreadsheet>

@@ -14,6 +14,9 @@ export type {
 } from "./types";
 export { createEmptyWorkbook, createEmptySheet } from "./types";
 
+// Toolbar
+export type { ToolbarButton } from "./components/Toolbar/SpreadsheetToolbar";
+
 // Engine utilities
 export { columnToLetter, letterToColumn, parseAddress, toAddress } from "./engine/cell-utils";
 export { parseCSV, stringifyCSV, csvToWorkbook, workbookToCSV } from "./engine/csv";
