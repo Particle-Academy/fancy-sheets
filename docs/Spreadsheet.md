@@ -61,6 +61,8 @@ Takes `SheetData` directly — no workbook wrapper, no tabs, no toolbar:
 | rowHeight | `number` | `28` | Row height in px |
 | readOnly | `boolean` | `false` | Disable editing |
 | contextMenuItems | `ContextMenuItem[] \| (addr) => ContextMenuItem[]` | - | Custom right-click items |
+| highlights | `CellHighlightMap` | - | Consumer-driven cell highlights (address → color/label) |
+| onActiveCellChange | `(addr, cell?) => void` | - | Fires when the active cell changes |
 | className | `string` | - | Additional CSS classes |
 
 ### Spreadsheet.Toolbar
@@ -129,6 +131,7 @@ interface CellData {
   computedValue?: CellValue;
   format?: CellFormat;
   comment?: CellComment;
+  meta?: Record<string, unknown>;  // consumer-defined metadata
 }
 ```
 
@@ -148,6 +151,7 @@ interface CellFormat {
   borderRight?: string;
   borderBottom?: string;
   borderLeft?: string;
+  className?: string;          // custom CSS class(es) on the cell element
 }
 ```
 
@@ -352,6 +356,90 @@ contextMenuItems={(addr) => [
 ```
 
 Submenus nest arbitrarily deep — each item with `items` renders as a hover-to-open submenu with a chevron indicator.
+
+## Cell Metadata
+
+The `meta` field on `CellData` stores arbitrary consumer-defined data. The package preserves it through edits but never reads it — consumers use it to build domain-specific features like grouping, tagging, or variable bindings.
+
+```tsx
+s.cells = {
+  A1: { value: "Revenue",  meta: { group: "rev", role: "label" } },
+  B1: { value: 50000,      meta: { group: "rev", role: "variable" } },
+};
+```
+
+## Custom CSS Classes
+
+The `className` field on `CellFormat` applies custom CSS classes to individual cell elements. Use it for Tailwind utilities, conditional styling, animations, or any CSS your app needs.
+
+```tsx
+s.cells = {
+  A1: { value: "Header", format: { className: "font-semibold tracking-wide" } },
+  B1: { value: 42,       format: { className: "tabular-nums text-right" } },
+  C1: { value: "Alert",  format: { className: "animate-pulse bg-red-100" } },
+};
+```
+
+Classes are merged after the built-in cell classes via `cn()`, so Tailwind utilities work and can override defaults.
+
+## Cell Highlights
+
+The `highlights` prop renders visual overlays on cells independent of selection and formatting — colored outlines, background tints, and optional label badges.
+
+```ts
+interface CellHighlight {
+  color: string;            // outline color (CSS)
+  backgroundColor?: string; // tint (auto-derived at 10% opacity from hex if omitted)
+  label?: string;           // small badge in top-left corner
+}
+
+type CellHighlightMap = Record<string, CellHighlight>;
+```
+
+### Static highlights
+
+```tsx
+<Sheet
+  data={sheet}
+  onChange={setSheet}
+  highlights={{
+    A1: { color: "#8b5cf6", label: "src" },
+    B1: { color: "#8b5cf6", label: "dst" },
+  }}
+/>
+```
+
+### Reactive highlights (grouping pattern)
+
+Use `onActiveCellChange` + `meta` to highlight related cells when the user clicks:
+
+```tsx
+const [activeAddr, setActiveAddr] = useState("A1");
+
+const highlights = useMemo<CellHighlightMap>(() => {
+  const group = (sheet.cells[activeAddr]?.meta as any)?.group;
+  if (!group) return {};
+  const map: CellHighlightMap = {};
+  for (const [addr, cell] of Object.entries(sheet.cells)) {
+    if ((cell.meta as any)?.group === group) {
+      map[addr] = {
+        color: "#8b5cf6",
+        label: (cell.meta as any)?.role,
+      };
+    }
+  }
+  return map;
+}, [activeAddr, sheet.cells]);
+
+<Sheet
+  data={sheet}
+  onChange={setSheet}
+  highlights={highlights}
+  onActiveCellChange={(addr) => setActiveAddr(addr)}
+/>
+```
+
+Click a cell tagged with `meta: { group: "rev" }` and all cells in that group highlight with a purple outline, tinted background, and role badges ("var", "lbl").
 
 ## Custom Formulas
 

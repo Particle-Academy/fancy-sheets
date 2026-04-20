@@ -188,10 +188,12 @@ function reducer(state: SpreadsheetState, action: Action): SpreadsheetState {
         ? { value: action.value, formula: action.value.slice(1), computedValue: null }
         : { value: isNaN(Number(action.value)) || action.value === "" ? action.value : Number(action.value) };
 
-      // Preserve existing format
+      // Preserve existing format and meta
       const sheet = getActiveSheet(state);
       const existing = sheet.cells[action.address];
       if (existing?.format) cellData.format = existing.format;
+      if (existing?.meta) cellData.meta = existing.meta;
+      if (existing?.comment) cellData.comment = existing.comment;
 
       // Update the cell, then recalculate ALL sheets (cross-sheet refs may depend on this)
       const updatedWorkbook = updateActiveSheet(state, (s) => ({

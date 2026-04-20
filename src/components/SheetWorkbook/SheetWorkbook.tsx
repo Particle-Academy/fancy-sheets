@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Spreadsheet } from "../Spreadsheet/Spreadsheet";
 import type { WorkbookData } from "../../types/sheet";
+import type { CellData, CellHighlightMap } from "../../types/cell";
 import type { SpreadsheetContextMenuItem } from "../Spreadsheet/Spreadsheet.types";
 import type { ToolbarButton } from "../Toolbar/SpreadsheetToolbar";
 
@@ -32,6 +33,10 @@ export interface SheetWorkbookProps {
   toolbarButtons?: ToolbarButton[];
   /** Custom context menu items */
   contextMenuItems?: SpreadsheetContextMenuItem[] | ((address: string) => SpreadsheetContextMenuItem[]);
+  /** Consumer-driven cell highlights */
+  highlights?: CellHighlightMap;
+  /** Fires when the active cell changes */
+  onActiveCellChange?: (address: string, cell: CellData | undefined) => void;
 }
 
 export function SheetWorkbook({
@@ -40,10 +45,12 @@ export function SheetWorkbook({
   toolbarExtra,
   toolbarButtons,
   contextMenuItems,
+  highlights,
+  onActiveCellChange,
   ...props
 }: SheetWorkbookProps) {
   return (
-    <Spreadsheet {...props} contextMenuItems={contextMenuItems}>
+    <Spreadsheet {...props} contextMenuItems={contextMenuItems} highlights={highlights} onActiveCellChange={onActiveCellChange}>
       {!hideToolbar && <Spreadsheet.Toolbar extra={toolbarExtra} buttons={toolbarButtons} />}
       <Spreadsheet.Grid />
       {!hideTabs && <Spreadsheet.SheetTabs />}

@@ -33,6 +33,8 @@ export interface CellFormat {
   borderBottom?: string;
   /** Left border color (renders 1px solid) */
   borderLeft?: string;
+  /** Custom CSS class(es) applied to the cell element */
+  className?: string;
 }
 
 /** Cell comment */
@@ -44,6 +46,19 @@ export interface CellComment {
   /** Comment color — used for the corner triangle indicator and cell border (default: #f59e0b / amber-500) */
   color?: string;
 }
+
+/** Consumer-driven cell highlight — rendered as a visual overlay, independent of selection and format */
+export interface CellHighlight {
+  /** Border/outline color (any CSS color value) */
+  color: string;
+  /** Background tint — if omitted and color is hex, auto-derived at 10% opacity */
+  backgroundColor?: string;
+  /** Small label badge in the cell's top-left corner (e.g., "var", "lbl") */
+  label?: string;
+}
+
+/** Map of cell addresses to their highlights */
+export type CellHighlightMap = Record<string, CellHighlight>;
 
 /** A single cell's complete data */
 export interface CellData {
@@ -57,4 +72,6 @@ export interface CellData {
   format?: CellFormat;
   /** Cell comment — shows a triangle indicator in the corner */
   comment?: CellComment;
+  /** Consumer-defined metadata — the package stores but never reads this */
+  meta?: Record<string, unknown>;
 }

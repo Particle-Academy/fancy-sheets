@@ -8,7 +8,7 @@ export type { SheetWorkbookProps } from "./components/SheetWorkbook/SheetWorkboo
 
 // Types
 export type {
-  CellAddress, CellValue, CellData, CellFormat, CellComment, TextAlign,
+  CellAddress, CellValue, CellData, CellFormat, CellComment, CellHighlight, CellHighlightMap, TextAlign,
   CellMap, ColumnWidths, MergedRegion, SheetData, WorkbookData,
   CellRange, SelectionState,
 } from "./types";

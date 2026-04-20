@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { WorkbookData } from "../../types/sheet";
-import type { CellFormat } from "../../types/cell";
+import type { CellData, CellFormat, CellHighlightMap } from "../../types/cell";
 import type { SelectionState } from "../../types/selection";
 
 /** Custom context menu item for right-click menus */
@@ -38,6 +38,10 @@ export interface SpreadsheetProps {
   readOnly?: boolean;
   /** Custom context menu items appended after built-in items */
   contextMenuItems?: SpreadsheetContextMenuItem[] | ((address: string) => SpreadsheetContextMenuItem[]);
+  /** Consumer-driven cell highlights — rendered as visual overlays, independent of selection */
+  highlights?: CellHighlightMap;
+  /** Fires when the active cell changes */
+  onActiveCellChange?: (address: string, cell: CellData | undefined) => void;
 }
 
 export interface SpreadsheetContextValue {
@@ -83,6 +87,8 @@ export interface SpreadsheetContextValue {
   isCellActive: (address: string) => boolean;
   /** Custom context menu items from consumer */
   contextMenuItems?: SpreadsheetContextMenuItem[] | ((address: string) => SpreadsheetContextMenuItem[]);
+  /** Consumer-provided cell highlights */
+  highlights: CellHighlightMap;
   /** @internal drag-to-select state */
   _isDragging: React.RefObject<boolean>;
 }

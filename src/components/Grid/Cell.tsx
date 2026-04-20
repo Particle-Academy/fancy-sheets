@@ -89,10 +89,12 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
     getColumnWidth,
     isCellSelected,
     isCellActive,
+    highlights,
     _isDragging,
   } = useSpreadsheet();
 
   const cell = activeSheet.cells[address];
+  const highlight = highlights[address];
   const isActive = isCellActive(address);
   const isSelected = isCellSelected(address);
   const isEditing = editingCell === address;
@@ -170,11 +172,13 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
       data-fancy-sheets-cell=""
       data-selected={isSelected || undefined}
       data-active={isActive || undefined}
+      data-highlighted={!!highlight || undefined}
       role="gridcell"
       className={cn(
         "relative flex items-center truncate border-r border-b border-zinc-200 bg-white px-1.5 text-[13px] select-none dark:border-zinc-700 dark:bg-zinc-900",
         isActive && "ring-2 ring-inset ring-blue-500",
         isSelected && !isActive && "bg-blue-50 dark:bg-blue-950/40",
+        cell?.format?.className,
       )}
       style={{ width, minWidth: width, height: rowHeight, ...formatStyle }}
       onMouseDown={handleMouseDown}
@@ -186,6 +190,27 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
       onMouseLeave={() => { if (comment) setShowComment(false); }}
       onDoubleClick={handleDoubleClick}
     >
+      {highlight && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            outline: `2px solid ${highlight.color}`,
+            outlineOffset: '-2px',
+            backgroundColor: highlight.backgroundColor
+              ?? (highlight.color.startsWith('#') ? `${highlight.color}1A` : undefined),
+          }}
+          aria-hidden
+        />
+      )}
+      {highlight?.label && (
+        <span
+          className="pointer-events-none absolute top-0 left-0 z-[1] px-0.5 text-[8px] font-bold leading-none text-white"
+          style={{ backgroundColor: highlight.color }}
+          aria-hidden
+        >
+          {highlight.label}
+        </span>
+      )}
       {!isEditing && <span className="truncate">{displayValue}</span>}
       {comment && (
         <div

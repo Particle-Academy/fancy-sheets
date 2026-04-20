@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Spreadsheet } from "../Spreadsheet/Spreadsheet";
 import type { SheetData, WorkbookData } from "../../types/sheet";
+import type { CellData, CellHighlightMap } from "../../types/cell";
 import type { SpreadsheetContextMenuItem } from "../Spreadsheet/Spreadsheet.types";
 
 export interface SheetProps {
@@ -21,9 +22,13 @@ export interface SheetProps {
   readOnly?: boolean;
   /** Custom context menu items */
   contextMenuItems?: SpreadsheetContextMenuItem[] | ((address: string) => SpreadsheetContextMenuItem[]);
+  /** Consumer-driven cell highlights */
+  highlights?: CellHighlightMap;
+  /** Fires when the active cell changes */
+  onActiveCellChange?: (address: string, cell: CellData | undefined) => void;
 }
 
-export function Sheet({ data, onChange, contextMenuItems, ...props }: SheetProps) {
+export function Sheet({ data, onChange, contextMenuItems, highlights, onActiveCellChange, ...props }: SheetProps) {
   const workbook = useMemo<WorkbookData | undefined>(
     () => data ? { sheets: [data], activeSheetId: data.id } : undefined,
     [data],
@@ -35,7 +40,7 @@ export function Sheet({ data, onChange, contextMenuItems, ...props }: SheetProps
   }, [onChange]);
 
   return (
-    <Spreadsheet data={workbook} onChange={handleChange} contextMenuItems={contextMenuItems} {...props}>
+    <Spreadsheet data={workbook} onChange={handleChange} contextMenuItems={contextMenuItems} highlights={highlights} onActiveCellChange={onActiveCellChange} {...props}>
       <Spreadsheet.Grid />
     </Spreadsheet>
   );

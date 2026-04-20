@@ -22,6 +22,8 @@ function SpreadsheetRoot({
   rowHeight = 28,
   readOnly = false,
   contextMenuItems,
+  highlights,
+  onActiveCellChange,
 }: SpreadsheetProps) {
   const { state, actions } = useSpreadsheetStore(data ?? defaultData);
   const onChangeRef = useRef(onChange);
@@ -76,7 +78,17 @@ function SpreadsheetRoot({
     [state.selection.activeCell],
   );
 
+  // Fire onActiveCellChange when active cell changes
+  const onActiveCellChangeRef = useRef(onActiveCellChange);
+  onActiveCellChangeRef.current = onActiveCellChange;
+  useEffect(() => {
+    const addr = state.selection.activeCell;
+    const cell = activeSheet.cells[addr];
+    onActiveCellChangeRef.current?.(addr, cell);
+  }, [state.selection.activeCell, activeSheet]);
+
   const isDraggingRef = useRef(false);
+  const highlightsResolved = highlights ?? {};
 
   const ctx = useMemo<SpreadsheetContextValue>(
     () => ({
@@ -97,9 +109,10 @@ function SpreadsheetRoot({
       isCellSelected,
       isCellActive,
       contextMenuItems,
+      highlights: highlightsResolved,
       _isDragging: isDraggingRef,
     }),
-    [state, activeSheet, columnCount, rowCount, defaultColumnWidth, rowHeight, readOnly, actions, getColumnWidth, isCellSelected, isCellActive, contextMenuItems],
+    [state, activeSheet, columnCount, rowCount, defaultColumnWidth, rowHeight, readOnly, actions, getColumnWidth, isCellSelected, isCellActive, contextMenuItems, highlightsResolved],
   );
 
   return (
