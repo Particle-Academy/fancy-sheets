@@ -1,6 +1,6 @@
 {
   "name": "@particle-academy/fancy-sheets",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Spreadsheet editor with formula engine, multi-sheet tabs, and full cell editing",
   "repository": {
     "type": "git",
