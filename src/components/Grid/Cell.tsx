@@ -131,7 +131,12 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
   if (cell?.format?.bold) formatStyle.fontWeight = "bold";
   if (cell?.format?.italic) formatStyle.fontStyle = "italic";
   if (cell?.format?.textAlign) formatStyle.textAlign = cell.format.textAlign;
-  if (cell?.format?.backgroundColor) formatStyle.backgroundColor = cell.format.backgroundColor;
+  if (cell?.format?.backgroundColor) {
+    formatStyle.backgroundColor = cell.format.backgroundColor;
+    // When a custom background is set but no explicit text color, force dark text
+    // so content stays readable against light/pastel backgrounds in both modes.
+    if (!cell.format.color) formatStyle.color = "#1f2937";
+  }
   if (cell?.format?.color) formatStyle.color = cell.format.color;
   if (cell?.format?.fontSize) formatStyle.fontSize = cell.format.fontSize;
   if (cell?.format?.borderTop) {
