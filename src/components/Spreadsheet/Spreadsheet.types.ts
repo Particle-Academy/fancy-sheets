@@ -7,12 +7,14 @@ import type { SelectionState } from "../../types/selection";
 export interface SpreadsheetContextMenuItem {
   /** Display label */
   label: string;
-  /** Called with the active cell address when the item is clicked */
-  onClick: (address: string) => void;
+  /** Called with the active cell address when the item is clicked (omit for submenu parents) */
+  onClick?: (address: string) => void;
   /** Whether the item is disabled — static or per-cell function */
   disabled?: boolean | ((address: string) => boolean);
   /** Render with danger styling */
   danger?: boolean;
+  /** Nested sub-items — renders as a submenu when present */
+  items?: SpreadsheetContextMenuItem[];
 }
 
 export interface SpreadsheetProps {

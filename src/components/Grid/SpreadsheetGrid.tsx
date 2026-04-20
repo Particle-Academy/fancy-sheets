@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { cn, ContextMenu } from "@particle-academy/react-fancy";
+import type { SpreadsheetContextMenuItem } from "../Spreadsheet/Spreadsheet.types";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
 import { ColumnHeaders } from "./ColumnHeaders";
 import { RowHeader } from "./RowHeaders";
@@ -8,6 +9,31 @@ import { CellEditor } from "./CellEditor";
 import { SelectionOverlay } from "./SelectionOverlay";
 import { toAddress, parseAddress } from "../../engine/cell-utils";
 import { cellsToTSV, tsvToCells } from "../../engine/clipboard";
+
+function renderMenuItems(items: SpreadsheetContextMenuItem[], activeCell: string): React.ReactNode {
+  return items.map((item, i) => {
+    if (item.items && item.items.length > 0) {
+      return (
+        <ContextMenu.Sub key={i}>
+          <ContextMenu.SubTrigger>{item.label}</ContextMenu.SubTrigger>
+          <ContextMenu.SubContent>
+            {renderMenuItems(item.items, activeCell)}
+          </ContextMenu.SubContent>
+        </ContextMenu.Sub>
+      );
+    }
+    return (
+      <ContextMenu.Item
+        key={i}
+        onClick={() => item.onClick?.(activeCell)}
+        disabled={typeof item.disabled === "function" ? item.disabled(activeCell) : item.disabled}
+        danger={item.danger}
+      >
+        {item.label}
+      </ContextMenu.Item>
+    );
+  });
+}
 
 interface SpreadsheetGridProps {
   className?: string;
@@ -239,16 +265,7 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
           return (
             <>
               <ContextMenu.Separator />
-              {items.map((item, i) => (
-                <ContextMenu.Item
-                  key={i}
-                  onClick={() => item.onClick(selection.activeCell)}
-                  disabled={typeof item.disabled === "function" ? item.disabled(selection.activeCell) : item.disabled}
-                  danger={item.danger}
-                >
-                  {item.label}
-                </ContextMenu.Item>
-              ))}
+              {renderMenuItems(items, selection.activeCell)}
             </>
           );
         })()}
