@@ -1,27 +1,50 @@
 # Spreadsheet
 
-A full-featured spreadsheet component with formulas, formatting, selection, multi-sheet workbooks, clipboard, CSV import/export, and undo/redo. Compound API.
+A full-featured spreadsheet component with formulas, formatting, selection, multi-sheet workbooks, clipboard, CSV import/export, comments, and undo/redo. Compound API.
 
 ## Import
 
 ```tsx
-import { Spreadsheet, useSpreadsheet } from "@particle-academy/fancy-sheets";
+import { Spreadsheet, Sheet, SheetWorkbook, useSpreadsheet } from "@particle-academy/fancy-sheets";
 import "@particle-academy/fancy-sheets/styles.css";
 ```
 
-## Basic Usage
+## Components
+
+### Compound API (full control)
 
 ```tsx
-<div style={{ height: 600 }}>
-  <Spreadsheet>
-    <Spreadsheet.Toolbar />
-    <Spreadsheet.Grid />
-    <Spreadsheet.SheetTabs />
-  </Spreadsheet>
-</div>
+<Spreadsheet data={workbook} onChange={setWorkbook}>
+  <Spreadsheet.Toolbar />
+  <Spreadsheet.Grid />
+  <Spreadsheet.SheetTabs />
+</Spreadsheet>
 ```
 
-The component fills its container — wrap it in a sized element (height is required).
+All sub-components are optional — omit `Toolbar` or `SheetTabs` to hide them.
+
+### SheetWorkbook (batteries-included)
+
+Convenience wrapper with props to toggle chrome:
+
+```tsx
+<SheetWorkbook
+  data={workbook}
+  onChange={setWorkbook}
+  hideToolbar={false}
+  hideTabs={false}
+  toolbarExtra={<button>Custom</button>}
+  contextMenuItems={[{ label: "Highlight", onClick: (addr) => ... }]}
+/>
+```
+
+### Sheet (lean single-sheet)
+
+Takes `SheetData` directly — no workbook wrapper, no tabs, no toolbar:
+
+```tsx
+<Sheet data={sheetData} onChange={setSheetData} columnCount={6} rowCount={10} />
+```
 
 ## Props
 
@@ -36,33 +59,36 @@ The component fills its container — wrap it in a sized element (height is requ
 | rowCount | `number` | `100` | Number of rows |
 | defaultColumnWidth | `number` | `100` | Default column width in px |
 | rowHeight | `number` | `28` | Row height in px |
-| readOnly | `boolean` | `false` | Disable editing, formatting, and structural changes |
+| readOnly | `boolean` | `false` | Disable editing |
+| contextMenuItems | `ContextMenuItem[] \| (addr) => ContextMenuItem[]` | - | Custom right-click items |
 | className | `string` | - | Additional CSS classes |
 
 ### Spreadsheet.Toolbar
 
-Default toolbar with format buttons (bold, italic, align), undo/redo, and freeze controls. Pass `children` to replace entirely.
-
 | Prop | Type | Description |
 |------|------|-------------|
-| children | `ReactNode` | Replace defaults |
+| children | `ReactNode` | Replace default toolbar entirely |
+| extra | `ReactNode` | Append content after default buttons (before formula bar) |
 | className | `string` | Additional CSS classes |
 
-### Spreadsheet.Grid
+### SheetWorkbook
 
-The main editable cell grid. Handles navigation, selection, editing, keyboard shortcuts, and clipboard.
+All `Spreadsheet` props plus:
 
-| Prop | Type | Description |
-|------|------|-------------|
-| className | `string` | Additional CSS classes |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| hideToolbar | `boolean` | `false` | Hide the toolbar |
+| hideTabs | `boolean` | `false` | Hide the sheet tabs |
+| toolbarExtra | `ReactNode` | - | Extra toolbar content |
 
-### Spreadsheet.SheetTabs
+### Sheet
 
-Bottom tab bar for multi-sheet workbooks. Supports add/rename/delete/switch.
-
-| Prop | Type | Description |
-|------|------|-------------|
-| className | `string` | Additional CSS classes |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| data | `SheetData` | - | Single sheet data (controlled) |
+| onChange | `(data: SheetData) => void` | - | Called on data change |
+| contextMenuItems | see Spreadsheet | - | Custom right-click items |
+| _(plus columnCount, rowCount, etc.)_ | | | |
 
 ## Data Model
 
@@ -81,8 +107,8 @@ interface WorkbookData {
 interface SheetData {
   id: string;
   name: string;
-  cells: Record<CellAddress, CellData>;   // sparse — only non-empty cells
-  columnWidths: Record<number, number>;   // sparse overrides
+  cells: Record<CellAddress, CellData>;
+  columnWidths: Record<number, number>;
   mergedRegions: MergedRegion[];
   columnFilters: Record<number, string>;
   sortColumn?: number;
@@ -95,14 +121,12 @@ interface SheetData {
 ### CellData
 
 ```ts
-type CellAddress = string; // "A1", "AA99", ...
-type CellValue = string | number | boolean | null;
-
 interface CellData {
-  value: CellValue;           // raw entered value
-  formula?: string;           // original formula string (e.g. "=SUM(A1:A10)")
-  computedValue?: CellValue;  // evaluated result
+  value: CellValue;
+  formula?: string;
+  computedValue?: CellValue;
   format?: CellFormat;
+  comment?: CellComment;
 }
 ```
 
@@ -113,9 +137,78 @@ interface CellFormat {
   bold?: boolean;
   italic?: boolean;
   textAlign?: "left" | "center" | "right";
-  displayFormat?: "auto" | "date" | "datetime" | "number" | "percent";
+  displayFormat?: "auto" | "text" | "number" | "date" | "datetime" | "percentage" | "currency";
   decimals?: number;
+  backgroundColor?: string;   // CSS color
+  color?: string;              // font color
+  fontSize?: number;           // px
+  borderTop?: string;          // CSS color (renders 1px solid)
+  borderRight?: string;
+  borderBottom?: string;
+  borderLeft?: string;
 }
+```
+
+When `backgroundColor` is set without `color`, text auto-defaults to dark gray (`#1f2937`) so content stays readable in both light and dark modes.
+
+### CellComment
+
+```ts
+interface CellComment {
+  text: string;
+  author?: string;
+  color?: string;   // default: "#f59e0b" (amber)
+}
+```
+
+Comments render as:
+- A small colored triangle in the cell's top-right corner
+- A 1px border around the cell in the comment color
+- A hover tooltip showing author + text
+
+### Context Menu Items
+
+```ts
+interface SpreadsheetContextMenuItem {
+  label: string;
+  onClick: (address: string) => void;
+  disabled?: boolean | ((address: string) => boolean);
+  danger?: boolean;
+}
+```
+
+Pass as array (static) or callback (dynamic per cell):
+
+```tsx
+// Static
+<Spreadsheet contextMenuItems={[
+  { label: "Highlight", onClick: (addr) => highlight(addr) },
+]}>
+
+// Dynamic (context-aware)
+<Spreadsheet contextMenuItems={(addr) => {
+  const cell = sheet.cells[addr];
+  return cell?.comment
+    ? [{ label: "Edit Comment", onClick: ... }, { label: "Delete Comment", danger: true, onClick: ... }]
+    : [{ label: "Add Comment", onClick: ... }];
+}}>
+```
+
+Items appear after a separator below the built-in items (Copy, Paste, Clear, Freeze).
+
+## Custom Formulas
+
+```tsx
+import { registerFunction } from "@particle-academy/fancy-sheets";
+import type { FormulaRangeFunction } from "@particle-academy/fancy-sheets";
+
+const myFormula: FormulaRangeFunction = (args) => {
+  const value = Number(args[0]?.[0] ?? 0);
+  return value > 100 ? "High" : "Low";
+};
+
+registerFunction("PRIORITY", myFormula);
+// Usage in cells: =PRIORITY(A1)
 ```
 
 ## Helpers
@@ -124,27 +217,21 @@ interface CellFormat {
 import { createEmptyWorkbook, createEmptySheet } from "@particle-academy/fancy-sheets";
 
 const workbook = createEmptyWorkbook();
-const newSheet = createEmptySheet("sheet-2", "Summary");
+const sheet = createEmptySheet("sheet-2", "Summary");
 ```
 
 ## useSpreadsheet Hook
 
-Access full workbook state and actions from any child of `<Spreadsheet>`.
+Access workbook state and actions from any child of `<Spreadsheet>`:
 
 ```tsx
-import { useSpreadsheet } from "@particle-academy/fancy-sheets";
-
 function ExportButton() {
   const { workbook } = useSpreadsheet();
-  return (
-    <button onClick={() => download(workbookToCSV(workbook))}>
-      Export CSV
-    </button>
-  );
+  return <button onClick={() => download(workbookToCSV(workbook))}>Export</button>;
 }
 ```
 
-See `SpreadsheetContextValue` in source for the full shape — key properties:
+Key properties:
 
 | Property | Description |
 |----------|-------------|
@@ -152,33 +239,12 @@ See `SpreadsheetContextValue` in source for the full shape — key properties:
 | `activeSheet` | Currently displayed SheetData |
 | `selection` | `{ activeCell, ranges }` |
 | `setCellValue(addr, val)` | Update a single cell |
-| `setCellFormat(addrs[], fmt)` | Apply formatting to a list of cells |
-| `navigate(dir, extend?)` | Move active cell (arrow-key equivalent) |
-| `startEdit(val?) / confirmEdit() / cancelEdit()` | Edit lifecycle |
-| `addSheet() / renameSheet() / deleteSheet() / setActiveSheet()` | Sheet management |
+| `setCellFormat(addrs[], fmt)` | Apply formatting |
+| `navigate(dir, extend?)` | Move active cell |
+| `startEdit / confirmEdit / cancelEdit` | Edit lifecycle |
+| `addSheet / renameSheet / deleteSheet / setActiveSheet` | Sheet management |
 | `setFrozenRows(n) / setFrozenCols(n)` | Freeze controls |
-| `undo() / redo()` | History navigation (50-step stack) |
-| `canUndo / canRedo` | Booleans |
-
-## Controlled Usage
-
-```tsx
-const [data, setData] = useState<WorkbookData>(createEmptyWorkbook());
-
-<Spreadsheet data={data} onChange={setData}>
-  <Spreadsheet.Toolbar />
-  <Spreadsheet.Grid />
-  <Spreadsheet.SheetTabs />
-</Spreadsheet>
-```
-
-## Read-Only Display
-
-```tsx
-<Spreadsheet defaultData={reportData} readOnly>
-  <Spreadsheet.Grid />
-</Spreadsheet>
-```
+| `undo / redo / canUndo / canRedo` | History (50-step) |
 
 ## Keyboard Shortcuts
 
@@ -186,13 +252,13 @@ const [data, setData] = useState<WorkbookData>(createEmptyWorkbook());
 |------|--------|
 | Arrow keys | Move active cell |
 | Shift + arrows | Extend selection |
-| Ctrl/Cmd + arrows | Jump to edge |
 | Enter / F2 | Start editing |
 | Esc | Cancel edit |
 | Tab / Shift+Tab | Move right/left |
-| Ctrl/Cmd + C / X / V | Copy / Cut / Paste |
+| Ctrl/Cmd + C / V | Copy / Paste |
 | Ctrl/Cmd + Z / Y | Undo / Redo |
 | Ctrl/Cmd + B / I | Bold / Italic |
+| Delete / Backspace | Clear cell |
 
 ## Data Attributes
 
@@ -202,15 +268,12 @@ const [data, setData] = useState<WorkbookData>(createEmptyWorkbook());
 | `data-fancy-sheets-toolbar` | Toolbar |
 | `data-fancy-sheets-formula-bar` | Formula bar |
 | `data-fancy-sheets-grid` | Grid container |
-| `data-fancy-sheets-column-headers` | Column header row |
-| `data-fancy-sheets-row-header` | Row header cell |
 | `data-fancy-sheets-cell` | Individual cell |
 | `data-fancy-sheets-cell-editor` | Active edit input |
 | `data-fancy-sheets-selection` | Selection overlay |
-| `data-fancy-sheets-resize-handle` | Column resize handle |
 | `data-fancy-sheets-tabs` | Sheet tabs |
 
 ## See Also
 
-- [Formulas](./formulas.md) — all 80+ built-in functions and how to register custom ones
+- [Formulas](./formulas.md) — all 80+ built-in functions and custom formula registration
 - [CSV Import/Export](./csv.md) — `csvToWorkbook`, `workbookToCSV`, `parseCSV`, `stringifyCSV`
