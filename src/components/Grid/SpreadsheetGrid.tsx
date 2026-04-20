@@ -33,6 +33,7 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
     extendSelection,
     undo,
     redo,
+    contextMenuItems,
   } = useSpreadsheet();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -230,6 +231,27 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
         }} disabled={readOnly}>
           {activeSheet.frozenCols > 0 ? "Unfreeze columns" : "Freeze columns left"}
         </ContextMenu.Item>
+        {(() => {
+          const items = typeof contextMenuItems === "function"
+            ? contextMenuItems(selection.activeCell)
+            : contextMenuItems;
+          if (!items || items.length === 0) return null;
+          return (
+            <>
+              <ContextMenu.Separator />
+              {items.map((item, i) => (
+                <ContextMenu.Item
+                  key={i}
+                  onClick={() => item.onClick(selection.activeCell)}
+                  disabled={typeof item.disabled === "function" ? item.disabled(selection.activeCell) : item.disabled}
+                  danger={item.danger}
+                >
+                  {item.label}
+                </ContextMenu.Item>
+              ))}
+            </>
+          );
+        })()}
       </ContextMenu.Content>
     </ContextMenu>
   );

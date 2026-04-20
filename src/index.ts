@@ -1,6 +1,10 @@
 // Components
 export { Spreadsheet, useSpreadsheet } from "./components/Spreadsheet";
-export type { SpreadsheetProps, SpreadsheetContextValue } from "./components/Spreadsheet";
+export type { SpreadsheetProps, SpreadsheetContextValue, SpreadsheetContextMenuItem } from "./components/Spreadsheet";
+export { Sheet } from "./components/Sheet/Sheet";
+export type { SheetProps } from "./components/Sheet/Sheet";
+export { SheetWorkbook } from "./components/SheetWorkbook/SheetWorkbook";
+export type { SheetWorkbookProps } from "./components/SheetWorkbook/SheetWorkbook";
 
 // Types
 export type {
@@ -14,3 +18,4 @@ export { createEmptyWorkbook, createEmptySheet } from "./types";
 export { columnToLetter, letterToColumn, parseAddress, toAddress } from "./engine/cell-utils";
 export { parseCSV, stringifyCSV, csvToWorkbook, workbookToCSV } from "./engine/csv";
 export { registerFunction } from "./engine/formula/functions/registry";
+export type { FormulaRangeFunction } from "./engine/formula/functions/registry";

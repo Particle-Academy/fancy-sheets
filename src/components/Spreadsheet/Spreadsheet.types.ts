@@ -3,6 +3,18 @@ import type { WorkbookData } from "../../types/sheet";
 import type { CellFormat } from "../../types/cell";
 import type { SelectionState } from "../../types/selection";
 
+/** Custom context menu item for right-click menus */
+export interface SpreadsheetContextMenuItem {
+  /** Display label */
+  label: string;
+  /** Called with the active cell address when the item is clicked */
+  onClick: (address: string) => void;
+  /** Whether the item is disabled — static or per-cell function */
+  disabled?: boolean | ((address: string) => boolean);
+  /** Render with danger styling */
+  danger?: boolean;
+}
+
 export interface SpreadsheetProps {
   children: ReactNode;
   className?: string;
@@ -22,6 +34,8 @@ export interface SpreadsheetProps {
   rowHeight?: number;
   /** Read-only mode */
   readOnly?: boolean;
+  /** Custom context menu items appended after built-in items */
+  contextMenuItems?: SpreadsheetContextMenuItem[] | ((address: string) => SpreadsheetContextMenuItem[]);
 }
 
 export interface SpreadsheetContextValue {
@@ -65,6 +79,8 @@ export interface SpreadsheetContextValue {
   getColumnWidth: (col: number) => number;
   isCellSelected: (address: string) => boolean;
   isCellActive: (address: string) => boolean;
+  /** Custom context menu items from consumer */
+  contextMenuItems?: SpreadsheetContextMenuItem[] | ((address: string) => SpreadsheetContextMenuItem[]);
   /** @internal drag-to-select state */
   _isDragging: React.RefObject<boolean>;
 }

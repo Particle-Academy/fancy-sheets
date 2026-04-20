@@ -21,6 +21,7 @@ function SpreadsheetRoot({
   defaultColumnWidth = 100,
   rowHeight = 28,
   readOnly = false,
+  contextMenuItems,
 }: SpreadsheetProps) {
   const { state, actions } = useSpreadsheetStore(data ?? defaultData);
   const onChangeRef = useRef(onChange);
@@ -95,9 +96,10 @@ function SpreadsheetRoot({
       getColumnWidth,
       isCellSelected,
       isCellActive,
+      contextMenuItems,
       _isDragging: isDraggingRef,
     }),
-    [state, activeSheet, columnCount, rowCount, defaultColumnWidth, rowHeight, readOnly, actions, getColumnWidth, isCellSelected, isCellActive],
+    [state, activeSheet, columnCount, rowCount, defaultColumnWidth, rowHeight, readOnly, actions, getColumnWidth, isCellSelected, isCellActive, contextMenuItems],
   );
 
   return (

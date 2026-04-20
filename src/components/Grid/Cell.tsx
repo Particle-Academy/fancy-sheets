@@ -131,6 +131,21 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
   if (cell?.format?.bold) formatStyle.fontWeight = "bold";
   if (cell?.format?.italic) formatStyle.fontStyle = "italic";
   if (cell?.format?.textAlign) formatStyle.textAlign = cell.format.textAlign;
+  if (cell?.format?.backgroundColor) formatStyle.backgroundColor = cell.format.backgroundColor;
+  if (cell?.format?.color) formatStyle.color = cell.format.color;
+  if (cell?.format?.fontSize) formatStyle.fontSize = cell.format.fontSize;
+  if (cell?.format?.borderTop) {
+    formatStyle.borderTopWidth = 1;
+    formatStyle.borderTopStyle = "solid";
+    formatStyle.borderTopColor = cell.format.borderTop;
+  }
+  if (cell?.format?.borderRight) formatStyle.borderRightColor = cell.format.borderRight;
+  if (cell?.format?.borderBottom) formatStyle.borderBottomColor = cell.format.borderBottom;
+  if (cell?.format?.borderLeft) {
+    formatStyle.borderLeftWidth = 1;
+    formatStyle.borderLeftStyle = "solid";
+    formatStyle.borderLeftColor = cell.format.borderLeft;
+  }
 
   return (
     <div

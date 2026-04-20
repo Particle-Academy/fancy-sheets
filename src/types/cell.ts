@@ -19,6 +19,20 @@ export interface CellFormat {
   displayFormat?: CellDisplayFormat;
   /** Number of decimal places to display (for number/currency/percentage) */
   decimals?: number;
+  /** Background color (any CSS color value) */
+  backgroundColor?: string;
+  /** Font color (any CSS color value) */
+  color?: string;
+  /** Font size in pixels */
+  fontSize?: number;
+  /** Top border color (renders 1px solid) */
+  borderTop?: string;
+  /** Right border color */
+  borderRight?: string;
+  /** Bottom border color */
+  borderBottom?: string;
+  /** Left border color (renders 1px solid) */
+  borderLeft?: string;
 }
 
 /** A single cell's complete data */

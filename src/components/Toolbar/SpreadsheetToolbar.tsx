@@ -4,6 +4,8 @@ import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
 interface SpreadsheetToolbarProps {
   children?: React.ReactNode;
   className?: string;
+  /** Additional toolbar content appended after default buttons */
+  extra?: React.ReactNode;
 }
 
 const btnClass =
@@ -11,7 +13,7 @@ const btnClass =
 
 const activeBtnClass = "bg-zinc-200 dark:bg-zinc-700";
 
-function DefaultToolbar() {
+function DefaultToolbar({ extra }: { extra?: React.ReactNode }) {
   const {
     selection,
     activeSheet,
@@ -200,6 +202,12 @@ function DefaultToolbar() {
           <span className="text-[10px]">.00</span>
           <span className="text-[8px]">→</span>
         </button>
+        {extra && (
+          <>
+            <div className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+            {extra}
+          </>
+        )}
       </div>
 
       {/* Formula bar */}
@@ -221,10 +229,10 @@ function DefaultToolbar() {
   );
 }
 
-export function SpreadsheetToolbar({ children, className }: SpreadsheetToolbarProps) {
+export function SpreadsheetToolbar({ children, className, extra }: SpreadsheetToolbarProps) {
   return (
     <div data-fancy-sheets-toolbar="" className={cn("", className)}>
-      {children ?? <DefaultToolbar />}
+      {children ?? <DefaultToolbar extra={extra} />}
     </div>
   );
 }
