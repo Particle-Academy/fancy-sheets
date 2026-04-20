@@ -69,6 +69,7 @@ Takes `SheetData` directly — no workbook wrapper, no tabs, no toolbar:
 |------|------|-------------|
 | children | `ReactNode` | Replace default toolbar entirely |
 | extra | `ReactNode` | Append content after default buttons (before formula bar) |
+| buttons | `ToolbarButton[]` | Which built-in groups to show (default: all). Pass `[]` for only custom `extra`. |
 | className | `string` | Additional CSS classes |
 
 ### SheetWorkbook
@@ -80,6 +81,7 @@ All `Spreadsheet` props plus:
 | hideToolbar | `boolean` | `false` | Hide the toolbar |
 | hideTabs | `boolean` | `false` | Hide the sheet tabs |
 | toolbarExtra | `ReactNode` | - | Extra toolbar content |
+| toolbarButtons | `ToolbarButton[]` | all | Which built-in toolbar groups to show |
 
 ### Sheet
 
@@ -166,50 +168,265 @@ Comments render as:
 - A 1px border around the cell in the comment color
 - A hover tooltip showing author + text
 
-### Context Menu Items
+### SpreadsheetContextMenuItem
 
 ```ts
 interface SpreadsheetContextMenuItem {
   label: string;
-  onClick: (address: string) => void;
+  onClick?: (address: string) => void;
   disabled?: boolean | ((address: string) => boolean);
   danger?: boolean;
+  items?: SpreadsheetContextMenuItem[];  // nested submenu
 }
 ```
 
-Pass as array (static) or callback (dynamic per cell):
+---
+
+## Custom Toolbar Buttons
+
+Use the `extra` prop on `Spreadsheet.Toolbar` (or `toolbarExtra` on `SheetWorkbook`) to inject your own buttons alongside the built-in ones. They appear after a divider at the end of the button bar.
 
 ```tsx
-// Static
-<Spreadsheet contextMenuItems={[
-  { label: "Highlight", onClick: (addr) => highlight(addr) },
-]}>
-
-// Dynamic (context-aware)
-<Spreadsheet contextMenuItems={(addr) => {
-  const cell = sheet.cells[addr];
-  return cell?.comment
-    ? [{ label: "Edit Comment", onClick: ... }, { label: "Delete Comment", danger: true, onClick: ... }]
-    : [{ label: "Add Comment", onClick: ... }];
-}}>
+<Spreadsheet data={data} onChange={setData}>
+  <Spreadsheet.Toolbar
+    extra={
+      <>
+        <button
+          className="rounded bg-green-600 px-2 py-0.5 text-xs text-white"
+          onClick={() => addRow("income")}
+        >
+          + Income
+        </button>
+        <button
+          className="rounded bg-red-500 px-2 py-0.5 text-xs text-white ml-1"
+          onClick={() => addRow("expense")}
+        >
+          + Expense
+        </button>
+      </>
+    }
+  />
+  <Spreadsheet.Grid />
+</Spreadsheet>
 ```
 
-Items appear after a separator below the built-in items (Copy, Paste, Clear, Freeze).
+Or via `SheetWorkbook`:
+
+```tsx
+<SheetWorkbook
+  data={data}
+  onChange={setData}
+  toolbarExtra={<button onClick={exportCSV}>Export</button>}
+/>
+```
+
+## Controlling the Toolbar
+
+The `buttons` prop on `Spreadsheet.Toolbar` (or `toolbarButtons` on `SheetWorkbook`) controls which built-in button groups are visible.
+
+```ts
+type ToolbarButton = "undo" | "bold" | "align" | "freeze" | "format" | "decimals" | "formulaBar";
+```
+
+### Show all (default)
+
+```tsx
+<Spreadsheet.Toolbar />
+```
+
+### Show specific groups only
+
+```tsx
+<Spreadsheet.Toolbar buttons={["undo", "bold", "formulaBar"]} />
+```
+
+### Show only custom buttons (hide all built-in)
+
+```tsx
+<Spreadsheet.Toolbar buttons={[]} extra={<MyCustomToolbar />} />
+```
+
+### Via SheetWorkbook
+
+```tsx
+<SheetWorkbook
+  toolbarButtons={["undo", "bold", "format", "formulaBar"]}
+  toolbarExtra={<button>Custom</button>}
+/>
+```
+
+### Replace the toolbar entirely
+
+Pass `children` to `Spreadsheet.Toolbar` to replace the default UI completely. Use `useSpreadsheet()` inside your custom toolbar to access state and actions.
+
+```tsx
+function MyToolbar() {
+  const { undo, redo, canUndo, canRedo, selection } = useSpreadsheet();
+  return (
+    <div className="flex gap-2 p-2 border-b">
+      <button onClick={undo} disabled={!canUndo}>Undo</button>
+      <button onClick={redo} disabled={!canRedo}>Redo</button>
+      <span>Cell: {selection.activeCell}</span>
+    </div>
+  );
+}
+
+<Spreadsheet data={data} onChange={setData}>
+  <Spreadsheet.Toolbar>
+    <MyToolbar />
+  </Spreadsheet.Toolbar>
+  <Spreadsheet.Grid />
+</Spreadsheet>
+```
+
+## Custom Context Menus
+
+The `contextMenuItems` prop adds items to the right-click menu after the built-in items (Copy, Paste, Clear, Freeze), separated by a divider.
+
+### Static items
+
+```tsx
+<Spreadsheet
+  data={data}
+  onChange={setData}
+  contextMenuItems={[
+    { label: "Highlight yellow", onClick: (addr) => highlight(addr, "#fef08a") },
+    { label: "Clear formatting", onClick: (addr) => clearFormat(addr) },
+  ]}
+>
+```
+
+### Dynamic items (context-aware)
+
+Pass a callback to return different items based on the active cell:
+
+```tsx
+<Spreadsheet
+  data={data}
+  onChange={setData}
+  contextMenuItems={(addr) => {
+    const cell = activeSheet.cells[addr];
+    const row = parseInt(addr.replace(/[A-Z]+/, ""), 10);
+
+    const items: SpreadsheetContextMenuItem[] = [];
+
+    // Comment actions depend on whether cell has a comment
+    if (cell?.comment) {
+      items.push({ label: "Edit Comment", onClick: (a) => openEditor(a) });
+      items.push({ label: "Delete Comment", danger: true, onClick: (a) => deleteComment(a) });
+    } else {
+      items.push({ label: "Add Comment", onClick: (a) => openEditor(a) });
+    }
+
+    // Row actions only for data rows
+    if (row >= 2) {
+      items.push({ label: "Delete Row", danger: true, onClick: (a) => deleteRow(a) });
+    }
+
+    return items;
+  }}
+>
+```
+
+### Nested submenus
+
+Add an `items` array to group actions into submenus:
+
+```tsx
+contextMenuItems={(addr) => [
+  {
+    label: "Comments",
+    items: [
+      { label: "Add Comment", onClick: (a) => openEditor(a) },
+    ],
+  },
+  {
+    label: "Row Actions",
+    items: [
+      { label: "Mark as Paid", onClick: (a) => markPaid(a) },
+      { label: "Duplicate Row", onClick: (a) => duplicateRow(a) },
+      { label: "Delete Row", danger: true, onClick: (a) => deleteRow(a) },
+    ],
+  },
+]}
+```
+
+Submenus nest arbitrarily deep — each item with `items` renders as a hover-to-open submenu with a chevron indicator.
 
 ## Custom Formulas
+
+Register custom functions that users can call in cell formulas with `=FUNCTION_NAME(...)`.
 
 ```tsx
 import { registerFunction } from "@particle-academy/fancy-sheets";
 import type { FormulaRangeFunction } from "@particle-academy/fancy-sheets";
+```
 
-const myFormula: FormulaRangeFunction = (args) => {
+### Basic function
+
+```tsx
+registerFunction("PRIORITY", (args) => {
   const value = Number(args[0]?.[0] ?? 0);
   return value > 100 ? "High" : "Low";
-};
+});
 
-registerFunction("PRIORITY", myFormula);
-// Usage in cells: =PRIORITY(A1)
+// In a cell: =PRIORITY(A1)
 ```
+
+### Function with multiple arguments
+
+`args` is a 2D array — each argument may be a single value or a range of values:
+
+```tsx
+registerFunction("BUDGET_STATUS", (args) => {
+  const spent = Number(args[0]?.[0] ?? 0);    // first arg: single cell
+  const budget = Number(args[1]?.[0] ?? 0);   // second arg: single cell
+  if (!budget) return "N/A";
+  const ratio = spent / budget;
+  if (ratio > 1) return "Over Budget";
+  if (ratio > 0.9) return "Near Limit";
+  return "On Track";
+});
+
+// In a cell: =BUDGET_STATUS(C4, B4)
+```
+
+### Function that operates on ranges
+
+When a range like `A1:A10` is passed, `args[n]` contains all values in the range as a flat array:
+
+```tsx
+registerFunction("WEIGHTED_AVG", (args) => {
+  const values = args[0] ?? [];   // =WEIGHTED_AVG(B2:B10, C2:C10)
+  const weights = args[1] ?? [];
+  let sumProduct = 0, sumWeights = 0;
+  for (let i = 0; i < values.length; i++) {
+    const v = Number(values[i] ?? 0);
+    const w = Number(weights[i] ?? 0);
+    sumProduct += v * w;
+    sumWeights += w;
+  }
+  return sumWeights === 0 ? 0 : sumProduct / sumWeights;
+});
+
+// In a cell: =WEIGHTED_AVG(B2:B10, C2:C10)
+```
+
+### Type signature
+
+```ts
+type FormulaRangeFunction = (args: CellValue[][]) => CellValue;
+// CellValue = string | number | boolean | null
+```
+
+- `args[0]` = first argument's values, `args[1]` = second, etc.
+- Single-cell arguments are `[value]` (array of one). Ranges are flat arrays.
+- Return a `CellValue`. Return a string starting with `#` for errors (e.g., `"#VALUE!"`).
+- Call `registerFunction` at module scope (before render). It's a global side-effect.
+
+### Built-in functions (80+)
+
+See [Formulas](./formulas.md) for the complete list: SUM, AVERAGE, IF, VLOOKUP, SUMIF, TODAY, CONCAT, and more.
 
 ## Helpers
 
