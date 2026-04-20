@@ -35,6 +35,16 @@ export interface CellFormat {
   borderLeft?: string;
 }
 
+/** Cell comment */
+export interface CellComment {
+  /** Comment text */
+  text: string;
+  /** Author name (optional) */
+  author?: string;
+  /** Comment color — used for the corner triangle indicator and cell border (default: #f59e0b / amber-500) */
+  color?: string;
+}
+
 /** A single cell's complete data */
 export interface CellData {
   /** The raw value (what the user typed) */
@@ -45,4 +55,6 @@ export interface CellData {
   computedValue?: CellValue;
   /** Display formatting */
   format?: CellFormat;
+  /** Cell comment — shows a triangle indicator in the corner */
+  comment?: CellComment;
 }

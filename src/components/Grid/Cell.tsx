@@ -1,7 +1,9 @@
-import { useCallback, memo } from "react";
+import { useCallback, memo, useState } from "react";
 import { cn } from "@particle-academy/react-fancy";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
 import type { CellData, CellValue } from "../../types/cell";
+
+const DEFAULT_COMMENT_COLOR = "#f59e0b";
 
 interface CellProps {
   address: string;
@@ -152,6 +154,17 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
     formatStyle.borderLeftColor = cell.format.borderLeft;
   }
 
+  // Comment indicator
+  const comment = cell?.comment;
+  const commentColor = comment?.color ?? DEFAULT_COMMENT_COLOR;
+  if (comment) {
+    formatStyle.borderColor = commentColor;
+    formatStyle.borderWidth = 1;
+    formatStyle.borderStyle = "solid";
+  }
+
+  const [showComment, setShowComment] = useState(false);
+
   return (
     <div
       data-fancy-sheets-cell=""
@@ -165,11 +178,36 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
       )}
       style={{ width, minWidth: width, height: rowHeight, ...formatStyle }}
       onMouseDown={handleMouseDown}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={(e) => {
+        handleMouseEnter();
+        if (comment) setShowComment(true);
+      }}
       onMouseUp={handleMouseUp}
+      onMouseLeave={() => { if (comment) setShowComment(false); }}
       onDoubleClick={handleDoubleClick}
     >
       {!isEditing && <span className="truncate">{displayValue}</span>}
+      {comment && (
+        <div
+          className="absolute top-0 right-0 h-0 w-0"
+          style={{
+            borderTop: `6px solid ${commentColor}`,
+            borderLeft: "6px solid transparent",
+          }}
+          aria-hidden
+        />
+      )}
+      {comment && showComment && (
+        <div
+          className="absolute top-full left-0 z-50 mt-0.5 max-w-[200px] rounded border bg-white px-2 py-1.5 text-[11px] leading-tight shadow-lg dark:bg-zinc-800"
+          style={{ borderColor: commentColor }}
+        >
+          {comment.author && (
+            <div className="mb-0.5 font-semibold" style={{ color: commentColor }}>{comment.author}</div>
+          )}
+          <div className="text-zinc-700 dark:text-zinc-200 whitespace-pre-wrap">{comment.text}</div>
+        </div>
+      )}
     </div>
   );
 });
