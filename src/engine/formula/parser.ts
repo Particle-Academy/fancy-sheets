@@ -1,6 +1,13 @@
 import type { FormulaToken, FormulaASTNode } from "../../types/formula";
 
 /**
+ * Hard cap on parser recursion depth. Prevents stack overflow / tab freeze
+ * from deeply nested formulas like `=((((((1))))))` x N. 64 is generous —
+ * legitimate formulas rarely nest beyond ~20.
+ */
+const MAX_DEPTH = 64;
+
+/**
  * Recursive descent parser for spreadsheet formulas.
  * Operator precedence (low to high):
  *   1. Comparison: =, <>, <, >, <=, >=
@@ -30,71 +37,84 @@ export function parseFormula(tokens: FormulaToken[]): FormulaASTNode {
     return t;
   }
 
-  // Precedence levels
-  function parseExpression(): FormulaASTNode {
-    return parseComparison();
+  function checkDepth(depth: number): void {
+    if (depth > MAX_DEPTH) {
+      throw new Error(`Formula nested too deep (max ${MAX_DEPTH} levels)`);
+    }
   }
 
-  function parseComparison(): FormulaASTNode {
-    let left = parseConcatenation();
+  // Precedence levels — every level threads `depth` so we can cap recursion.
+  function parseExpression(depth = 0): FormulaASTNode {
+    checkDepth(depth);
+    return parseComparison(depth + 1);
+  }
+
+  function parseComparison(depth: number): FormulaASTNode {
+    let left = parseConcatenation(depth + 1);
     while (peek() && peek()!.type === "operator" && ["=", "<>", "<", ">", "<=", ">="].includes(peek()!.value)) {
       const op = advance().value;
-      const right = parseConcatenation();
+      const right = parseConcatenation(depth + 1);
       left = { type: "binaryOp", operator: op, left, right };
     }
     return left;
   }
 
-  function parseConcatenation(): FormulaASTNode {
-    let left = parseAddition();
+  function parseConcatenation(depth: number): FormulaASTNode {
+    checkDepth(depth);
+    let left = parseAddition(depth + 1);
     while (peek() && peek()!.type === "operator" && peek()!.value === "&") {
       advance();
-      const right = parseAddition();
+      const right = parseAddition(depth + 1);
       left = { type: "binaryOp", operator: "&", left, right };
     }
     return left;
   }
 
-  function parseAddition(): FormulaASTNode {
-    let left = parseMultiplication();
+  function parseAddition(depth: number): FormulaASTNode {
+    checkDepth(depth);
+    let left = parseMultiplication(depth + 1);
     while (peek() && peek()!.type === "operator" && (peek()!.value === "+" || peek()!.value === "-")) {
       const op = advance().value;
-      const right = parseMultiplication();
+      const right = parseMultiplication(depth + 1);
       left = { type: "binaryOp", operator: op, left, right };
     }
     return left;
   }
 
-  function parseMultiplication(): FormulaASTNode {
-    let left = parseExponentiation();
+  function parseMultiplication(depth: number): FormulaASTNode {
+    checkDepth(depth);
+    let left = parseExponentiation(depth + 1);
     while (peek() && peek()!.type === "operator" && (peek()!.value === "*" || peek()!.value === "/")) {
       const op = advance().value;
-      const right = parseExponentiation();
+      const right = parseExponentiation(depth + 1);
       left = { type: "binaryOp", operator: op, left, right };
     }
     return left;
   }
 
-  function parseExponentiation(): FormulaASTNode {
-    let left = parseUnary();
+  function parseExponentiation(depth: number): FormulaASTNode {
+    checkDepth(depth);
+    let left = parseUnary(depth + 1);
     while (peek() && peek()!.type === "operator" && peek()!.value === "^") {
       advance();
-      const right = parseUnary();
+      const right = parseUnary(depth + 1);
       left = { type: "binaryOp", operator: "^", left, right };
     }
     return left;
   }
 
-  function parseUnary(): FormulaASTNode {
+  function parseUnary(depth: number): FormulaASTNode {
+    checkDepth(depth);
     if (peek() && peek()!.type === "operator" && (peek()!.value === "-" || peek()!.value === "+")) {
       const op = advance().value;
-      const operand = parseUnary();
+      const operand = parseUnary(depth + 1);
       return { type: "unaryOp", operator: op, operand };
     }
-    return parseAtom();
+    return parseAtom(depth + 1);
   }
 
-  function parseAtom(): FormulaASTNode {
+  function parseAtom(depth: number): FormulaASTNode {
+    checkDepth(depth);
     const t = peek();
     if (!t) throw new Error("Unexpected end of formula");
 
@@ -146,10 +166,10 @@ export function parseFormula(tokens: FormulaToken[]): FormulaASTNode {
       expect("paren", "(");
       const args: FormulaASTNode[] = [];
       if (peek() && !(peek()!.type === "paren" && peek()!.value === ")")) {
-        args.push(parseExpression());
+        args.push(parseExpression(depth + 1));
         while (peek() && peek()!.type === "comma") {
           advance();
-          args.push(parseExpression());
+          args.push(parseExpression(depth + 1));
         }
       }
       expect("paren", ")");
@@ -165,7 +185,7 @@ export function parseFormula(tokens: FormulaToken[]): FormulaASTNode {
     // Parenthesized expression
     if (t.type === "paren" && t.value === "(") {
       advance();
-      const expr = parseExpression();
+      const expr = parseExpression(depth + 1);
       expect("paren", ")");
       return expr;
     }
@@ -173,6 +193,6 @@ export function parseFormula(tokens: FormulaToken[]): FormulaASTNode {
     throw new Error(`Unexpected token '${t.value}' at position ${t.position}`);
   }
 
-  const ast = parseExpression();
+  const ast = parseExpression(0);
   return ast;
 }
