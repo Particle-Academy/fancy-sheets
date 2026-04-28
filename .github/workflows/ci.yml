@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # See publish.yml — package.json uses workspace:* for
+      # @particle-academy/react-fancy in devDeps (resolved via pnpm in the
+      # monorepo). Standalone CI has no workspace; rewrite to a plain range.
+      - name: Rewrite workspace protocol
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
+              if (!pkg[section]) continue;
+              for (const [name, version] of Object.entries(pkg[section])) {
+                if (typeof version === 'string' && version.startsWith('workspace:')) {
+                  pkg[section][name] = version.slice('workspace:'.length);
+                }
+              }
+            }
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Type-check
+        run: npm run lint
+
+      - name: Build
+        run: npm run build

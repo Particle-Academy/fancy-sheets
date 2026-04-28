@@ -9,12 +9,14 @@ export function sortCellsByColumn(
   rowStart: number,
   rowEnd: number,
 ): CellMap {
-  // Collect row data
+  // Collect row data. Coerce booleans to 1/0 so the comparator below can
+  // treat them numerically without a special case.
   const rows: { rowIdx: number; sortValue: string | number | null }[] = [];
   for (let r = rowStart; r <= rowEnd; r++) {
     const addr = toAddress(r, column);
     const cell = cells[addr];
-    const val = cell?.computedValue ?? cell?.value ?? null;
+    const raw = cell?.computedValue ?? cell?.value ?? null;
+    const val: string | number | null = typeof raw === "boolean" ? (raw ? 1 : 0) : raw;
     rows.push({ rowIdx: r, sortValue: val });
   }
 

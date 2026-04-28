@@ -13,8 +13,9 @@ registerFunction("VLOOKUP", (args) => {
   // For now, VLOOKUP works with the range as a single column lookup.
   // Look for the key in the range, return offset value.
   for (let i = 0; i < range.length; i++) {
-    if (range[i] === key || (typeof range[i] === "string" && typeof key === "string" && range[i].toLowerCase() === key.toLowerCase())) {
-      return range[i] ?? "#N/A";
+    const v = range[i];
+    if (v === key || (typeof v === "string" && typeof key === "string" && v.toLowerCase() === key.toLowerCase())) {
+      return v ?? "#N/A";
     }
   }
   return "#N/A";
@@ -25,8 +26,9 @@ registerFunction("HLOOKUP", (args) => {
   const key = flat[0];
   const range = args[1] ?? [];
   for (let i = 0; i < range.length; i++) {
-    if (range[i] === key || (typeof range[i] === "string" && typeof key === "string" && range[i].toLowerCase() === key.toLowerCase())) {
-      return range[i] ?? "#N/A";
+    const v = range[i];
+    if (v === key || (typeof v === "string" && typeof key === "string" && v.toLowerCase() === key.toLowerCase())) {
+      return v ?? "#N/A";
     }
   }
   return "#N/A";
@@ -45,10 +47,11 @@ registerFunction("MATCH", (args) => {
   const key = flat[0];
   const range = args[1] ?? [];
   for (let i = 0; i < range.length; i++) {
-    if (range[i] === key || (typeof range[i] === "number" && typeof key === "number" && range[i] === key)) {
+    const v = range[i];
+    if (v === key || (typeof v === "number" && typeof key === "number" && v === key)) {
       return i + 1; // 1-based
     }
-    if (typeof range[i] === "string" && typeof key === "string" && range[i].toLowerCase() === key.toLowerCase()) {
+    if (typeof v === "string" && typeof key === "string" && v.toLowerCase() === key.toLowerCase()) {
       return i + 1;
     }
   }
