@@ -66,6 +66,19 @@ pnpm --filter @particle-academy/fancy-sheets clean    # Remove dist/
 - **Features** — editing, navigation, selection (single, range, multi-range), formatting (bold/italic/align), clipboard (copy/cut/paste with TSV), column resize, freeze rows/cols, undo/redo (50 steps), drag-to-select
 - **Zero third-party dependencies** — custom lexer, parser, evaluator, and dependency graph
 
+## Inertia.js integration
+
+Spreadsheet uses canvas grid measurement and is **not SSR-safe**. In an Inertia app, wrap with [`<FancyClientOnly>`](https://github.com/Particle-Academy/fancy-inertia/blob/main/docs/USAGE.md#fancyclientonly) from `@particle-academy/fancy-inertia`:
+
+```tsx
+import { FancyClientOnly } from "@particle-academy/fancy-inertia";
+import { Spreadsheet } from "@particle-academy/fancy-sheets";
+
+<FancyClientOnly fallback={<div className="h-96 animate-pulse rounded bg-zinc-100" />}>
+  <Spreadsheet rows={100} cols={26} />
+</FancyClientOnly>
+```
+
 ## License
 
 MIT
