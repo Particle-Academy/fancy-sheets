@@ -1,5 +1,7 @@
 # @particle-academy/fancy-sheets
 
+[![Fancified](art/fancified.svg)](https://particle.academy)
+
 A full-featured spreadsheet component with formulas, formatting, selection, multi-sheet workbooks, clipboard, CSV import/export, and undo/redo. Custom engine — no third-party dependency.
 
 ## Installation
