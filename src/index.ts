@@ -22,3 +22,17 @@ export { columnToLetter, letterToColumn, parseAddress, toAddress } from "./engin
 export { parseCSV, stringifyCSV, csvToWorkbook, workbookToCSV } from "./engine/csv";
 export { registerFunction } from "./engine/formula/functions/registry";
 export type { FormulaRangeFunction } from "./engine/formula/functions/registry";
+
+// Formula engine — pure, React-free, Node-safe (headless recalc, SSR, exports, tests)
+export { recalculateWorkbook, recalculateSheet } from "./engine/recalc";
+export { lexFormula } from "./engine/formula/lexer";
+export { parseFormula } from "./engine/formula/parser";
+export { evaluateAST } from "./engine/formula/evaluator";
+export type {
+  CellValueGetter,
+  RangeValueGetter,
+  SheetCellValueGetter,
+  SheetRangeValueGetter,
+  EvaluatorContext,
+} from "./engine/formula/evaluator";
+export type { FormulaToken, FormulaTokenType, FormulaASTNode } from "./types/formula";

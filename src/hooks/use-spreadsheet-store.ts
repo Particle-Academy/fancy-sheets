@@ -3,11 +3,8 @@ import type { CellValue, CellData, CellFormat } from "../types/cell";
 import type { WorkbookData, SheetData } from "../types/sheet";
 import type { SelectionState, CellRange } from "../types/selection";
 import { createEmptyWorkbook, createEmptySheet } from "../types/sheet";
-import { parseAddress, toAddress, expandRange } from "../engine/cell-utils";
-import { lexFormula } from "../engine/formula/lexer";
-import { parseFormula } from "../engine/formula/parser";
-import { evaluateAST } from "../engine/formula/evaluator";
-import { buildDependencyGraph, detectCircularRefs, getRecalculationOrder } from "../engine/formula/dependency-graph";
+import { parseAddress, toAddress } from "../engine/cell-utils";
+import { recalculateWorkbook } from "../engine/recalc";
 
 // ---------------------------------------------------------------------------
 // State
@@ -20,21 +17,6 @@ export interface SpreadsheetState {
   editValue: string;
   undoStack: WorkbookData[];
   redoStack: WorkbookData[];
-}
-
-function recalculateWorkbook(workbook: WorkbookData): WorkbookData {
-  // Recalculate sequentially so cross-sheet refs see already-computed values
-  const recalculated: SheetData[] = [];
-  for (const sheet of workbook.sheets) {
-    recalculated.push(recalculateSheet(sheet, recalculated));
-  }
-  // Second pass: recalculate again with ALL sheets computed
-  // (handles reverse-order cross-sheet refs like Sheet1 referencing Sheet3)
-  const finalSheets: SheetData[] = [];
-  for (const sheet of recalculated) {
-    finalSheets.push(recalculateSheet(sheet, recalculated));
-  }
-  return { ...workbook, sheets: finalSheets };
 }
 
 function createInitialState(data?: WorkbookData): SpreadsheetState {
@@ -97,75 +79,6 @@ function pushUndo(state: SpreadsheetState): { undoStack: WorkbookData[]; redoSta
   const stack = [...state.undoStack, state.workbook];
   if (stack.length > 50) stack.shift();
   return { undoStack: stack, redoStack: [] };
-}
-
-/** Recalculate all formula cells in a sheet, with cross-sheet reference support */
-function recalculateSheet(sheet: SheetData, allSheets?: SheetData[]): SheetData {
-  const graph = buildDependencyGraph(sheet.cells);
-  if (graph.size === 0) return sheet;
-
-  const circular = detectCircularRefs(graph);
-  const order = getRecalculationOrder(graph);
-  const cells = { ...sheet.cells };
-
-  const getCellValue = (addr: string): CellValue => {
-    const c = cells[addr];
-    if (!c) return null;
-    if (c.formula && c.computedValue !== undefined) return c.computedValue;
-    return c.value;
-  };
-
-  const getRangeValues = (startAddr: string, endAddr: string): CellValue[] => {
-    const addresses = expandRange(startAddr, endAddr);
-    return addresses.map(getCellValue);
-  };
-
-  // Cross-sheet getters
-  const getSheetCellValue = (sheetName: string, addr: string): CellValue => {
-    if (!allSheets) return "#REF!";
-    const target = allSheets.find((s) => s.name === sheetName || s.id === sheetName);
-    if (!target) return "#REF!";
-    const c = target.cells[addr];
-    if (!c) return null;
-    if (c.formula && c.computedValue !== undefined) return c.computedValue;
-    return c.value;
-  };
-
-  const getSheetRangeValues = (sheetName: string, startAddr: string, endAddr: string): CellValue[] => {
-    if (!allSheets) return [];
-    const target = allSheets.find((s) => s.name === sheetName || s.id === sheetName);
-    if (!target) return [];
-    const addresses = expandRange(startAddr, endAddr);
-    return addresses.map((a) => {
-      const c = target.cells[a];
-      if (!c) return null;
-      if (c.formula && c.computedValue !== undefined) return c.computedValue;
-      return c.value;
-    });
-  };
-
-  const ctx = { getSheetCellValue, getSheetRangeValues };
-
-  for (const addr of order) {
-    const cell = cells[addr];
-    if (!cell?.formula) continue;
-
-    if (circular.has(addr)) {
-      cells[addr] = { ...cell, computedValue: "#CIRC!" };
-      continue;
-    }
-
-    try {
-      const tokens = lexFormula(cell.formula);
-      const ast = parseFormula(tokens);
-      const result = evaluateAST(ast, getCellValue, getRangeValues, ctx);
-      cells[addr] = { ...cell, computedValue: result };
-    } catch {
-      cells[addr] = { ...cell, computedValue: "#ERROR!" };
-    }
-  }
-
-  return { ...sheet, cells };
 }
 
 function getCellDisplayValue(cell: CellData | undefined): string {
