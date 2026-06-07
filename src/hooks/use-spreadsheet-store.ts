@@ -403,7 +403,10 @@ function reducer(state: SpreadsheetState, action: Action): SpreadsheetState {
     }
 
     case "SET_WORKBOOK":
-      return { ...state, workbook: action.workbook };
+      // Recalculate so externally-synced formula cells (server round-trips,
+      // agent-bridge tool updates, prop-driven snapshots) evaluate — same as
+      // createInitialState and SET_CELL_VALUE. Without this they render blank.
+      return { ...state, workbook: recalculateWorkbook(action.workbook) };
 
     default:
       return state;

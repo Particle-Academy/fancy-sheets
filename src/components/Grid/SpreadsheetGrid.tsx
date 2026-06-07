@@ -194,7 +194,13 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
               return (
                 <div
                   key={rowIdx}
-                  className="flex"
+                  className={cn(
+                    "flex",
+                    // Frozen rows need a solid background so scrolling content
+                    // doesn't bleed through any cell-level transparency
+                    // (highlight overlays, alpha format colors, etc.).
+                    isFrozenRow && "bg-white dark:bg-zinc-900",
+                  )}
                   style={isFrozenRow ? {
                     position: "sticky",
                     top: rowHeight + rowIdx * rowHeight,
@@ -210,6 +216,12 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
                     return (
                       <div
                         key={addr}
+                        className={cn(
+                          // Same solid-background guarantee for frozen
+                          // columns — keeps the column opaque while content
+                          // scrolls horizontally underneath.
+                          isFrozenCol && "bg-white dark:bg-zinc-900",
+                        )}
                         style={isFrozenCol ? {
                           position: "sticky",
                           left: 48 + Array.from({ length: colIdx }, (_, c) => getColumnWidth(c)).reduce((a, b) => a + b, 0),
