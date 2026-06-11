@@ -14,6 +14,15 @@ export type {
 } from "./types";
 export { createEmptyWorkbook, createEmptySheet } from "./types";
 
+// Agent-driven live sync — controlled workbook state + debounced persist + Echo
+// op-replay + status flag (the spreadsheet parallel of fancy-slides' useDeckSync).
+export { useSheetSync } from "./hooks/use-sheet-sync";
+export type {
+  SheetSyncStatus, SheetSyncTransport, UseSheetSyncOptions, SheetSyncApi,
+} from "./hooks/use-sheet-sync";
+export { reduceWorkbook } from "./hooks/use-sheet-state";
+export type { SheetOp } from "./types/op";
+
 // Toolbar
 export type { ToolbarButton } from "./components/Toolbar/SpreadsheetToolbar";
 
