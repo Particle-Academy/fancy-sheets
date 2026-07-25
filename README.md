@@ -12,7 +12,7 @@ npm install @particle-academy/fancy-sheets
 # or: yarn add @particle-academy/fancy-sheets
 ```
 
-**Peer dependencies:** `react >= 18`, `react-dom >= 18`, `@particle-academy/react-fancy >= 1.5`
+**Peer dependencies:** `react >= 18`, `react-dom >= 18`, `@particle-academy/react-fancy >= 2`
 
 ## Setup
 
