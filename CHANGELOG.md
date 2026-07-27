@@ -2,6 +2,54 @@
 
 All notable changes to `@particle-academy/fancy-sheets` are documented here.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+> **0.9.0 is missing below.** This file was last updated at 0.8.0; `git log` is
+> the record for that release. Noted rather than back-filled from memory.
+
+## [Unreleased]
+
+## [0.9.1] — 2026-07-27
+
+### Fixed
+
+- **Nothing in the toolbar or the sheet tabs had an accessible name.** Every
+  toolbar button contains a bare `<svg>` and carried only a `title`, which is
+  not a reliable accessible name — so a screen reader announced eleven controls
+  as "button". The **format picker was a `<select>` with no label of any kind**,
+  and the formula bar — the most-used control in the component — had none either.
+
+- **The sheet tabs were a row of plain buttons with no tab semantics**, so
+  nothing announced which sheet was active. They are now a `role="tablist"` of
+  `role="tab"` with `aria-selected`, and each carries a `data-fancy-sheet-tab`
+  handle keyed by sheet id — the stable identity the Human+ contract asks for,
+  so an agent switches sheets by id rather than by counting DOM children.
+
+  **Nothing to do.** No prop changed; controls gained attributes.
+
+### Changed
+
+- **Toolbar buttons are `<Button variant="ghost" size="xs">` from react-fancy.**
+  The hand-written `btnClass` spelled out — padding, hover, disabled fade —
+  exactly what react-fancy's ghost variant already provides, so the swap is
+  dimensionally identical on a dense, size-sensitive toolbar and picks up the
+  shared focus ring. react-fancy was already a required peer; this package had
+  been importing it only for the `cn` helper.
+
+  The **grid is deliberately untouched**. A spreadsheet cell is not a
+  react-fancy primitive, and hand-rolling it is correct — only the chrome was
+  ever a candidate.
+
+### Added
+
+- **jsdom, a vitest config, and the package's first component tests.** There was
+  one suite — pure logic, in `src/hooks/` — and no jsdom at all, so not one of
+  the 12 React components could be rendered and inspected. That is how an
+  unlabelled format picker went unnoticed. Six new tests; all six fail against
+  the previous code, and one of them caught two freeze buttons this change had
+  missed.
+
 ## [0.8.0] — 2026-06-07
 
 Expose the formula engine for headless / Node use, and document the patterns

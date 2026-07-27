@@ -30,6 +30,8 @@ export function SpreadsheetSheetTabs({ className }: SpreadsheetSheetTabsProps) {
   return (
     <div
       data-fancy-sheets-tabs=""
+      role="tablist"
+      aria-label="Sheets"
       className={cn(
         "flex items-center gap-0.5 border-t border-zinc-200 bg-zinc-50 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900/50",
         className,
@@ -43,6 +45,7 @@ export function SpreadsheetSheetTabs({ className }: SpreadsheetSheetTabsProps) {
           <div key={sheet.id} className="relative flex items-center">
             {isRenaming ? (
               <input
+                aria-label={`Rename sheet ${sheet.name}`}
                 className="rounded border border-blue-500 bg-white px-2 py-0.5 text-[12px] outline-none dark:bg-zinc-800 dark:text-zinc-100"
                 value={renameValue}
                 onChange={(e) => setRenameValue(e.target.value)}
@@ -55,6 +58,11 @@ export function SpreadsheetSheetTabs({ className }: SpreadsheetSheetTabsProps) {
               />
             ) : (
               <button
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                data-fancy-sheet-tab={sheet.id}
+                title={`${sheet.name} — double-click to rename`}
                 className={cn(
                   "rounded px-3 py-1 text-[12px] font-medium transition-colors",
                   isActive
@@ -69,6 +77,8 @@ export function SpreadsheetSheetTabs({ className }: SpreadsheetSheetTabsProps) {
             )}
             {!readOnly && workbook.sheets.length > 1 && isActive && !isRenaming && (
               <button
+                type="button"
+                aria-label={`Delete sheet ${sheet.name}`}
                 className="ml-0.5 rounded p-0.5 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
                 onClick={() => deleteSheet(sheet.id)}
                 title="Delete sheet"
@@ -81,6 +91,8 @@ export function SpreadsheetSheetTabs({ className }: SpreadsheetSheetTabsProps) {
       })}
       {!readOnly && (
         <button
+          type="button"
+          aria-label="Add sheet"
           className="rounded px-2 py-1 text-[12px] font-medium text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
           onClick={addSheet}
           title="Add sheet"
