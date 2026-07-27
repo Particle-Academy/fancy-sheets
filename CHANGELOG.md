@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] — 2026-07-27
+
+### Fixed
+
+- **The format picker stretched across the whole toolbar.** react-fancy's
+  `<Select>` is full-width by default; the bare `<select>` it replaced in 0.9.1
+  was `h-6` and content-sized. Constrained to `w-36`. Caught by looking at the
+  rendered toolbar — the six new tests assert names and roles, and none of them
+  can see a control that is too wide.
+
 ## [0.9.1] — 2026-07-27
 
 ### Fixed

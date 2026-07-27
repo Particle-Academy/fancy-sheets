@@ -188,7 +188,9 @@ function DefaultToolbar({ extra, buttons }: { extra?: React.ReactNode; buttons: 
         <Select
           aria-label="Cell format"
           size="sm"
-          className="text-[11px]"
+          // <Select> is full-width by default; the bare <select> it replaced was
+          // h-6 and content-sized, so without this it eats the whole toolbar.
+          className="w-36 text-[11px]"
           value={displayFormat}
           onValueChange={(v) => setCellFormat(selectedAddresses, { displayFormat: v as any })}
           disabled={readOnly}
