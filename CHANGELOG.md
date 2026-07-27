@@ -10,6 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] — 2026-07-27
+
+### Security
+
+- **esbuild forced to >= 0.28.1** ([GHSA-g7r4-m6w7-qqqr] — arbitrary file read
+  via the esbuild dev server on Windows, low severity). esbuild reaches this
+  repo only as a build-time transitive of `tsup` and `vitest`, both
+  devDependencies, so **nothing shipped in the published package was affected
+  and no consumer was ever exposed** — this closes the alert on the repo's own
+  dev tree.
+
+  The fix is an `overrides` entry rather than a dependency bump because there is
+  nothing to bump to: `tsup@8.5.1` (latest) ranges `esbuild: ^0.27.0`, and no
+  patched 0.27.x exists — the fix first shipped in esbuild 0.28.1. The override
+  installs the *patched* esbuild, it does not suppress the finding. **Remove it
+  once tsup ships an esbuild >= 0.28.1 range.**
+
+### Consumers
+
+- **Nothing to do.** The change is devDependency-tree only; the published
+  `dist/` is byte-identical in behaviour to 0.9.2.
+
 ## [0.9.2] — 2026-07-27
 
 ### Fixed
@@ -93,3 +115,5 @@ external consumers most need. ([#2](https://github.com/Particle-Academy/fancy-sh
 
 Fix: an externally-replaced `data` prop now recalculates formulas correctly
 (`SET_WORKBOOK` runs the recalc pass). See [#1](https://github.com/Particle-Academy/fancy-sheets/issues/1).
+
+[GHSA-g7r4-m6w7-qqqr]: https://github.com/advisories/GHSA-g7r4-m6w7-qqqr
