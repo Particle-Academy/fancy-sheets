@@ -10,6 +10,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-09-13
+
+> Pre-1.0: a breaking change lands in a MINOR release. Each one below says what to do.
+
+### Fixed
+
+- **A formatted number now displays as a spreadsheet application displays it.** Each `displayFormat` renders through the format code holy-sheet writes into an `.xlsx` for the same format, so the grid and the exported file agree. Against LibreOffice 26.2, the previous display got 91 of 160 formatted cells wrong:
+  - `currency` was always `$`, ignored the cell's currency and had no thousands separator: `1250000.5` showed `$1250000.50` for a cell the file formats as `€1,250,000.50`.
+  - Rounding went through `toFixed`, so `1.005` at two places showed `1.00`. It is now half away from zero on the decimal value (`1.01`).
+  - A negative that rounds to zero showed `-0.00` under a single-section format.
+- **`TEXT()` understands format codes.** It knew `%` and a decimal point and returned 351 of 427 probed results differently from LibreOffice. It now handles digit placeholders (`0 # ?`), grouping and scaling commas, `%`, scientific notation, quoted and escaped text, positive/negative/zero sections, and date and time codes (`yyyy-mm-dd`, `mmmm d, yyyy`, `dddd`, `h:mm AM/PM`, `hh:mm:ss`). A date past 9999-12-31 is `#VALUE!`. Fractions (`# ?/?`) and elapsed time (`[h]`) are not supported.
+- **Dates no longer depend on the browser's time zone.** Serial dates were computed in local time against a local 1899 epoch:
+  - In America/Chicago in summer, and in Asia/Kolkata all year, `DATE(2023,7,16)` returned 45122 instead of 45123.
+  - In Pacific/Apia every date cell showed the next day.
+  - `DAY("2026-01-15")`, the string holy-sheet reads a date cell back as, was 14 in America/Chicago.
+
+  Every date function and the date display now use the calendar date; only `TODAY()` and `NOW()` read the local clock.
+- **`HOUR`, `MINUTE` and `SECOND` no longer truncate binary error**: `MINUTE(2.675)` is 12, not 11.
+- **`EDATE` clamps to the end of a shorter month**: Jan 31 + 1 month is Feb 28, not Mar 3.
+- **`DATEDIF` counts complete months and years**: Jan 31 to Feb 1 is 0 months, not 1.
+- **`WEEKDAY` return type 3 counts from Monday** (0 = Monday), as documented. Types 11–17 are supported; any other type is `#NUM!`.
+
+### Added
+
+- `CellFormat.currency`: an ISO 4217 code for `currency` display, default `USD`. The symbols are holy-sheet's, so a workbook holy-sheet reads back keeps its currency.
+- `formatCellValue(value, cell)`, `displayFormatCode(format)`, `defaultDecimals(displayFormat)`, `formatWithCode(value, code)` and `currencySymbol(iso)` are exported, pure and React-free, for rendering a cell's text outside the grid.
+
+### Changed
+
+- **BREAKING: `displayFormat: "number"` without `decimals` shows 0 places, grouped** (`1234.567` shows `1,235`). It used to show the raw value, while holy-sheet wrote the same cell into a file as `#,##0`. **What to do:** if you want places, set `decimals`. If you want the raw value, use `displayFormat: "auto"`.
+- The toolbar's decimal-places stepper counts from the places a format shows by default (2 for currency, 1 for a percentage) rather than from the raw value's digits.
+
+Every expectation behind these fixes was produced by LibreOffice, not written from memory: `scripts/libreoffice-goldens/build.mjs` writes the cases through holy-sheet, LibreOffice displays or computes them, and the tests compare against `tests/fixtures/libreoffice/`. The exceptions are `A/P`, where the case follows the code as Microsoft documents (LibreOffice always writes lower case), and `DATE(23,1,1)`, which stays 1923 (Excel's rule and this package's behaviour until now) where LibreOffice windows it to 2023.
+
 ## [0.10.0] — 2026-08-07
 
 ### Changed

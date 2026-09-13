@@ -143,7 +143,8 @@ interface CellFormat {
   italic?: boolean;
   textAlign?: "left" | "center" | "right";
   displayFormat?: "auto" | "text" | "number" | "date" | "datetime" | "percentage" | "currency";
-  decimals?: number;
+  decimals?: number;          // unset: number 0, currency 2, percentage 1
+  currency?: string;          // ISO 4217 for "currency", default "USD"
   backgroundColor?: string;   // CSS color
   color?: string;              // font color
   fontSize?: number;           // px
@@ -156,6 +157,26 @@ interface CellFormat {
 ```
 
 When `backgroundColor` is set without `color`, text auto-defaults to dark gray (`#1f2937`) so content stays readable in both light and dark modes.
+
+#### How a number format displays
+
+Each `displayFormat` stands for the spreadsheet format code holy-sheet writes into an
+`.xlsx` for the same format, so a workbook reads the same in the grid as in Excel or
+LibreOffice after export:
+
+| `format` | Code | `1250000.5` shows |
+|---|---|---|
+| `{ displayFormat: "number" }` | `#,##0` | `1,250,001` |
+| `{ displayFormat: "number", decimals: 2 }` | `#,##0.00` | `1,250,000.50` |
+| `{ displayFormat: "currency" }` | `"$"#,##0.00;-"$"#,##0.00` | `$1,250,000.50` |
+| `{ displayFormat: "currency", currency: "EUR", decimals: 0 }` | `"€"#,##0;-"€"#,##0` | `€1,250,001` |
+| `{ displayFormat: "percentage" }` | `0.0%` | `125000050.0%` |
+| `{ displayFormat: "date" }` | `yyyy-mm-dd` | `5322-05-19` |
+
+Rounding is half away from zero on the value's decimal form (`1.005` at two places is
+`1.01`), and dates are calendar dates in every time zone. `formatCellValue(value, cell)`,
+`displayFormatCode(format)` and `formatWithCode(value, code)` are exported for rendering
+the same text outside the grid.
 
 ### CellComment
 

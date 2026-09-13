@@ -1,0 +1,219 @@
+{
+  "generatedBy": "scripts/libreoffice-goldens/build.mjs",
+  "libreoffice": "LibreOffice 26.2.5.2",
+  "note": "Every value below is what LibreOffice produced. Do not edit by hand; regenerate.",
+  "cases": [
+    {
+      "formula": "DATE(2023,7,16)",
+      "result": 45123
+    },
+    {
+      "formula": "DATE(2023,1,16)",
+      "result": 44942
+    },
+    {
+      "formula": "DATE(2023,13,1)",
+      "result": 45292
+    },
+    {
+      "formula": "DATE(2023,0,1)",
+      "result": 44896
+    },
+    {
+      "formula": "DATE(2023,2,30)",
+      "result": 44987
+    },
+    {
+      "formula": "DATE(2024,2,29)",
+      "result": 45351
+    },
+    {
+      "formula": "DATE(1899,12,31)",
+      "result": 1
+    },
+    {
+      "formula": "DATE(1900,1,1)",
+      "result": 2
+    },
+    {
+      "formula": "DATE(1929,1,1)",
+      "result": 10594
+    },
+    {
+      "formula": "DATE(2023.9,7.9,16.9)",
+      "result": 45123
+    },
+    {
+      "formula": "YEAR(45123)",
+      "result": 2023
+    },
+    {
+      "formula": "MONTH(45123)",
+      "result": 7
+    },
+    {
+      "formula": "DAY(45123)",
+      "result": 16
+    },
+    {
+      "formula": "YEAR(44927)",
+      "result": 2023
+    },
+    {
+      "formula": "MONTH(44927)",
+      "result": 1
+    },
+    {
+      "formula": "DAY(44927)",
+      "result": 1
+    },
+    {
+      "formula": "WEEKDAY(45123)",
+      "result": 1
+    },
+    {
+      "formula": "WEEKDAY(45123,2)",
+      "result": 7
+    },
+    {
+      "formula": "WEEKDAY(45123,3)",
+      "result": 6
+    },
+    {
+      "formula": "WEEKDAY(45127)",
+      "result": 5
+    },
+    {
+      "formula": "WEEKDAY(45127,2)",
+      "result": 4
+    },
+    {
+      "formula": "WEEKDAY(45127,3)",
+      "result": 3
+    },
+    {
+      "formula": "WEEKDAY(45123,11)",
+      "result": 7
+    },
+    {
+      "formula": "WEEKDAY(45123,12)",
+      "result": 6
+    },
+    {
+      "formula": "WEEKDAY(45123,16)",
+      "result": 2
+    },
+    {
+      "formula": "WEEKDAY(45123,17)",
+      "result": 1
+    },
+    {
+      "formula": "WEEKDAY(45127,13)",
+      "result": 2
+    },
+    {
+      "formula": "HOUR(2.675)",
+      "result": 16
+    },
+    {
+      "formula": "MINUTE(2.675)",
+      "result": 12
+    },
+    {
+      "formula": "SECOND(2.675)",
+      "result": 0
+    },
+    {
+      "formula": "HOUR(1.005)",
+      "result": 0
+    },
+    {
+      "formula": "MINUTE(1.005)",
+      "result": 7
+    },
+    {
+      "formula": "SECOND(1.005)",
+      "result": 12
+    },
+    {
+      "formula": "HOUR(45123.9999999)",
+      "result": 23
+    },
+    {
+      "formula": "MINUTE(45123.9999999)",
+      "result": 59
+    },
+    {
+      "formula": "SECOND(45123.9999999)",
+      "result": 0
+    },
+    {
+      "formula": "SECOND(1234.567)",
+      "result": 29
+    },
+    {
+      "formula": "HOUR(0.75)",
+      "result": 18
+    },
+    {
+      "formula": "EDATE(DATE(2023,1,31),1)",
+      "result": 44985
+    },
+    {
+      "formula": "EDATE(DATE(2024,1,31),1)",
+      "result": 45351
+    },
+    {
+      "formula": "EDATE(DATE(2024,3,31),-1)",
+      "result": 45351
+    },
+    {
+      "formula": "EDATE(DATE(2023,7,16),6)",
+      "result": 45307
+    },
+    {
+      "formula": "EDATE(DATE(2023,7,16),-18)",
+      "result": 44577
+    },
+    {
+      "formula": "EDATE(45123.75,1)",
+      "result": 45154
+    },
+    {
+      "formula": "DATEDIF(DATE(2023,1,31),DATE(2023,2,1),\"M\")",
+      "result": 0
+    },
+    {
+      "formula": "DATEDIF(DATE(2023,1,31),DATE(2023,2,28),\"M\")",
+      "result": 0
+    },
+    {
+      "formula": "DATEDIF(DATE(2023,1,15),DATE(2023,3,15),\"M\")",
+      "result": 2
+    },
+    {
+      "formula": "DATEDIF(DATE(2022,12,31),DATE(2023,12,30),\"M\")",
+      "result": 11
+    },
+    {
+      "formula": "DATEDIF(DATE(2020,2,29),DATE(2021,2,28),\"Y\")",
+      "result": 0
+    },
+    {
+      "formula": "DATEDIF(DATE(2023,1,15),DATE(2024,1,15),\"Y\")",
+      "result": 1
+    },
+    {
+      "formula": "DATEDIF(DATE(2023,1,16),DATE(2024,1,15),\"Y\")",
+      "result": 0
+    },
+    {
+      "formula": "DATEDIF(DATE(2023,1,15),DATE(2023,3,15),\"D\")",
+      "result": 59
+    },
+    {
+      "formula": "DATEDIF(45123.9,45124.1,\"D\")",
+      "result": 1
+    }
+  ]
+}

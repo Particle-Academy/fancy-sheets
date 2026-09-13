@@ -17,8 +17,18 @@ export interface CellFormat {
   textAlign?: TextAlign;
   /** Display format — controls how the value is rendered */
   displayFormat?: CellDisplayFormat;
-  /** Number of decimal places to display (for number/currency/percentage) */
+  /**
+   * Number of decimal places to display (for number/currency/percentage).
+   * Unset, `number` shows 0, `currency` 2 and `percentage` 1: the places
+   * holy-sheet writes into an exported file for the same format.
+   */
   decimals?: number;
+  /**
+   * ISO 4217 code for `currency` display, e.g. "EUR" shows `€1,234.50`.
+   * Defaults to USD. The symbols match holy-sheet's, so an exported file and
+   * the grid agree; an unlisted code displays as itself, e.g. `NZD 1,234.50`.
+   */
+  currency?: string;
   /** Background color (any CSS color value) */
   backgroundColor?: string;
   /** Font color (any CSS color value) */

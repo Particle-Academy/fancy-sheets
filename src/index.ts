@@ -29,6 +29,9 @@ export type { ToolbarButton } from "./components/Toolbar/SpreadsheetToolbar";
 // Engine utilities
 export { columnToLetter, letterToColumn, parseAddress, toAddress } from "./engine/cell-utils";
 export { parseCSV, stringifyCSV, csvToWorkbook, workbookToCSV } from "./engine/csv";
+// Display formatting — the grid's cell text and TEXT(), from the same format codes holy-sheet writes
+export { formatCellValue, displayFormatCode, defaultDecimals } from "./engine/cell-display";
+export { formatWithCode, currencySymbol } from "./engine/number-format";
 export { registerFunction } from "./engine/formula/functions/registry";
 export type { FormulaRangeFunction } from "./engine/formula/functions/registry";
 

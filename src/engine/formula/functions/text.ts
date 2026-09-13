@@ -1,4 +1,5 @@
 import { registerFunction } from "./registry";
+import { formatWithCode } from "../../number-format";
 
 registerFunction("UPPER", (args) => {
   const val = args.flat()[0];
@@ -121,13 +122,7 @@ registerFunction("TEXT", (args) => {
   if (val == null) return "";
   const num = Number(val);
   if (isNaN(num)) return String(val);
-  // Basic format support: 0, 0.00, #,##0, %
-  if (fmt.includes("%")) return (num * 100).toFixed(fmt.split(".")[1]?.length ?? 0) + "%";
-  if (fmt.includes(".")) {
-    const decimals = fmt.split(".")[1]?.replace(/[^0#]/g, "").length ?? 0;
-    return num.toFixed(decimals);
-  }
-  return String(num);
+  return formatWithCode(num, fmt) ?? "#VALUE!";
 });
 
 registerFunction("CHAR", (args) => {

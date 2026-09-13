@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Select, cn } from "@particle-academy/react-fancy";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
+import { defaultDecimals } from "../../engine/cell-display";
 
 /** Toolbar button groups that can be toggled on/off */
 export type ToolbarButton = "undo" | "bold" | "align" | "freeze" | "format" | "decimals" | "formulaBar";
@@ -58,6 +59,9 @@ function DefaultToolbar({ extra, buttons }: { extra?: React.ReactNode; buttons: 
   const cellValue = cell?.computedValue ?? cell?.value;
   const inferredDecimals = (() => {
     if (explicitDecimals !== undefined) return explicitDecimals;
+    // A number format with no places set shows its default, so the stepper counts from what is on screen.
+    const formatDefault = defaultDecimals(displayFormat);
+    if (formatDefault !== undefined) return formatDefault;
     if (typeof cellValue === "number") {
       const str = String(cellValue);
       const dotIdx = str.indexOf(".");

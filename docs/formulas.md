@@ -82,7 +82,7 @@ The engine evaluates Excel/Sheets-style formulas entered with a leading `=`. Par
 | `REPT(s, n)` | Repeat |
 | `EXACT(a, b)` | Case-sensitive equality |
 | `VALUE(s)` | String → number |
-| `TEXT(n, fmt)` | Number → formatted string |
+| `TEXT(n, fmt)` | Number → formatted string, through a spreadsheet format code: digits (`0 # ?`), grouping and scaling commas, `%`, `E+`, quoted text, sections (`positive;negative;zero`), and dates and times (`yyyy mmmm dddd hh:mm:ss AM/PM`). Not fractions or `[h]` |
 | `CHAR(code)` / `CODE(s)` | Code ↔ character |
 
 ### Logic (8)
@@ -131,9 +131,13 @@ Criteria support operators as strings: `">100"`, `"<=50"`, `"<>"`, `"=apple"`.
 | `DATE(y, m, d)` | Build a date |
 | `YEAR(date)` / `MONTH(date)` / `DAY(date)` | Extract parts |
 | `HOUR(t)` / `MINUTE(t)` / `SECOND(t)` | Extract time parts |
-| `WEEKDAY(date, type?)` | Day of week |
-| `DATEDIF(start, end, unit)` | Difference (`"Y"`, `"M"`, `"D"`) |
-| `EDATE(start, months)` | Offset by months |
+| `WEEKDAY(date, type?)` | Day of week; types 1, 2, 3 and 11-17 |
+| `DATEDIF(start, end, unit)` | Difference in days (`"D"`), or complete months (`"M"`) and years (`"Y"`) |
+| `EDATE(start, months)` | Offset by months, clamped to the end of a shorter month |
+
+Dates are serial numbers (days since 1899-12-30). Every date function works on the
+calendar date, so its result does not depend on the browser's time zone; only
+`TODAY()` and `NOW()` read the local clock. A bare `YYYY-MM-DD` string is read as that date.
 
 ### Info (6)
 
