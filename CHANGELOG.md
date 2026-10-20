@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-19
+
+### Added
+
+- **`WorkbookFileView`**: an .xlsx in fancy-code's `FileViewer`. Register it
+  once at app start, `registerOfficeViewer("xlsx", WorkbookFileView, { read:
+  (b) => new XlsxReader().describe(b) })`, and `FileViewer` shows the workbook
+  read-only in the `FauxClient` frame (zoom and full screen on hover), with its
+  sheet tabs, from the workbook your server read (preferred) or by reading the
+  file in the browser. A document that is not a workbook says so.
+- **`workbookFromRead(read)`**: holy-sheet's read schema (PHP or JS) to
+  `WorkbookData`, carrying every cell field (value, formula, format, comment)
+  and the layout. It lived in an app, so every other app showing a read
+  workbook had to write it again.
+
+### Changed
+
+- **Requires react-fancy 5.47.0 or later** (peer `>=5.47.0 <6.0.0`, was `>=2`),
+  for the frame.
+
 ### Fixed
 
 - **`CHANGELOG.md` is now in the published tarball.** `files` did not whitelist it, so npm never shipped it — and this package puts breaking changes in MINOR releases and tells you in the README to read the entry before taking one. The instruction existed for the author, who has the file, and not for the consumer, who is the only one being instructed. Nothing for you to do; the file simply arrives from this release on.

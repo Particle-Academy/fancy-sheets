@@ -6,6 +6,12 @@ export type { SheetProps } from "./components/Sheet/Sheet";
 export { SheetWorkbook } from "./components/SheetWorkbook/SheetWorkbook";
 export type { SheetWorkbookProps } from "./components/SheetWorkbook/SheetWorkbook";
 
+// An .xlsx in fancy-code's FileViewer (registerOfficeViewer), and the mapping
+// from holy-sheet's read schema it uses.
+export { WorkbookFileView } from "./components/WorkbookFileView";
+export type { WorkbookFileViewProps } from "./components/WorkbookFileView";
+export { workbookFromRead, isWorkbookRead } from "./utils/workbook-from-read";
+
 // Types
 export type {
   CellAddress, CellValue, CellData, CellFormat, CellComment, CellHighlight, CellHighlightMap, TextAlign,
