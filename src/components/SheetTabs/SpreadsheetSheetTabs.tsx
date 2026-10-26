@@ -52,7 +52,12 @@ export function SpreadsheetSheetTabs({ className }: SpreadsheetSheetTabsProps) {
                 onBlur={handleRenameConfirm}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleRenameConfirm();
-                  if (e.key === "Escape") setRenamingId(null);
+                  if (e.key === "Escape") {
+                    // Handled: cancelling the rename is this Escape's whole
+                    // job, so a full-screen workbook must not also close on it.
+                    e.preventDefault();
+                    setRenamingId(null);
+                  }
                 }}
                 autoFocus
               />

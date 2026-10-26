@@ -63,6 +63,10 @@ Takes `SheetData` directly — no workbook wrapper, no tabs, no toolbar:
 | contextMenuItems | `ContextMenuItem[] \| (addr) => ContextMenuItem[]` | - | Custom right-click items |
 | highlights | `CellHighlightMap` | - | Consumer-driven cell highlights (address → color/label) |
 | onActiveCellChange | `(addr, cell?) => void` | - | Fires when the active cell changes |
+| fullScreen | `boolean` | - | Controlled full-screen flag (see [Full screen](#full-screen)) |
+| defaultFullScreen | `boolean` | `false` | Initial full-screen flag when uncontrolled |
+| onFullScreenChange | `(fullScreen: boolean) => void` | - | Requested state, from the toggle, Escape, `setFullScreen` or the browser |
+| fullScreenMode | `"overlay" \| "native"` | `"overlay"` | Cover the viewport in place, or use the browser Fullscreen API (falls back to the overlay) |
 | className | `string` | - | Additional CSS classes |
 
 ### Spreadsheet.Toolbar
@@ -250,7 +254,7 @@ Or via `SheetWorkbook`:
 The `buttons` prop on `Spreadsheet.Toolbar` (or `toolbarButtons` on `SheetWorkbook`) controls which built-in button groups are visible.
 
 ```ts
-type ToolbarButton = "undo" | "bold" | "align" | "freeze" | "format" | "decimals" | "formulaBar";
+type ToolbarButton = "undo" | "bold" | "align" | "freeze" | "format" | "decimals" | "formulaBar" | "fullScreen";
 ```
 
 ### Show all (default)
@@ -303,6 +307,26 @@ function MyToolbar() {
   <Spreadsheet.Grid />
 </Spreadsheet>
 ```
+
+## Full screen
+
+Every `Spreadsheet` (and so `SheetWorkbook`) can cover the viewport. It is react-fancy's [`useFullScreen`](https://github.com/Particle-Academy/react-fancy/blob/main/docs/FullScreen.md), so the behaviour matches `Editor`: the root covers the viewport in place, lifted into the browser's top layer (with a `position: fixed` fallback), body scroll is locked, focus returns on exit, and the context menu stays visible inside it. Nothing is portalled, so the selection, an open edit and undo history survive.
+
+```tsx
+// Uncontrolled: the toggle is at the right end of the toolbar.
+<SheetWorkbook defaultData={data} />
+
+// Controlled
+const [fs, setFs] = useState(false);
+<SheetWorkbook data={data} onChange={setData} fullScreen={fs} onFullScreenChange={setFs} />
+```
+
+- **The toggle** is the `"fullScreen"` toolbar group, on by default. An explicit `toolbarButtons` list leaves it out unless you include `"fullScreen"`. In custom chrome, use `<Spreadsheet.FullScreenToggle />` (or react-fancy's `<FullScreen.Toggle />`) anywhere inside a `<Spreadsheet>`.
+- **From code or an agent**, `useSpreadsheet()` returns `fullScreen` and `setFullScreen`.
+- **Escape** leaves full screen, unless something inside handled it first. An Escape that cancels a cell edit, or a sheet rename, does only that; the next Escape leaves.
+- **Layout.** The root is a flex column and the grid takes the remaining height, so a full-screen sheet shows more rows and columns. `toolbarExtra` stays in the toolbar, so host actions stay reachable.
+- **Background.** While full screen the root gets `bg-white dark:bg-zinc-900`, because the top-layer box is otherwise transparent. Dark mode follows your app's `dark:` variant.
+- Needs `@particle-academy/react-fancy` 5.61.1 or later, and its `styles.css` (which resets the browser's popover box).
 
 ## Custom Context Menus
 

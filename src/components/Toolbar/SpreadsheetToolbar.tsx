@@ -1,12 +1,13 @@
 import React from "react";
 import { Button, Select, cn } from "@particle-academy/react-fancy";
 import { useSpreadsheet } from "../Spreadsheet/Spreadsheet.context";
+import { SpreadsheetFullScreenToggle } from "../Spreadsheet/SpreadsheetFullScreenToggle";
 import { defaultDecimals } from "../../engine/cell-display";
 
 /** Toolbar button groups that can be toggled on/off */
-export type ToolbarButton = "undo" | "bold" | "align" | "freeze" | "format" | "decimals" | "formulaBar";
+export type ToolbarButton = "undo" | "bold" | "align" | "freeze" | "format" | "decimals" | "formulaBar" | "fullScreen";
 
-const ALL_BUTTONS: ToolbarButton[] = ["undo", "bold", "align", "freeze", "format", "decimals", "formulaBar"];
+const ALL_BUTTONS: ToolbarButton[] = ["undo", "bold", "align", "freeze", "format", "decimals", "formulaBar", "fullScreen"];
 
 interface SpreadsheetToolbarProps {
   children?: React.ReactNode;
@@ -229,9 +230,14 @@ function DefaultToolbar({ extra, buttons }: { extra?: React.ReactNode; buttons: 
     groups.push(<React.Fragment key="extra">{extra}</React.Fragment>);
   }
 
+  // Full screen is about the whole workbook, not the active cell, so it sits
+  // apart at the trailing edge rather than as one more formatting group. After
+  // `extra` too, so a host's own actions keep their place beside the format tools.
+  const showFullScreen = buttons.has("fullScreen");
+
   return (
     <>
-      {groups.length > 0 && (
+      {(groups.length > 0 || showFullScreen) && (
         <div className="flex items-center gap-0.5 border-b border-zinc-200 px-1.5 py-1 dark:border-zinc-700">
           {groups.map((group, i) => (
             <React.Fragment key={i}>
@@ -239,6 +245,7 @@ function DefaultToolbar({ extra, buttons }: { extra?: React.ReactNode; buttons: 
               {group}
             </React.Fragment>
           ))}
+          {showFullScreen && <SpreadsheetFullScreenToggle className="ml-auto shrink-0" />}
         </div>
       )}
 

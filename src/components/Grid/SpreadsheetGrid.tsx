@@ -111,6 +111,10 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
 
       // Start editing by typing
       if (!readOnly && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+        // The edit is seeded with this key, and the editor takes focus before
+        // the browser's default insertion runs, so an uncancelled key lands a
+        // second time ("zz" typed into a cell became "zzz").
+        e.preventDefault();
         startEdit(e.key);
       }
 

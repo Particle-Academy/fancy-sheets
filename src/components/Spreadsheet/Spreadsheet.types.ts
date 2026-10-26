@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { FullScreenMode } from "@particle-academy/react-fancy";
 import type { WorkbookData } from "../../types/sheet";
 import type { CellData, CellFormat, CellHighlightMap } from "../../types/cell";
 import type { SelectionState } from "../../types/selection";
@@ -42,6 +43,23 @@ export interface SpreadsheetProps {
   highlights?: CellHighlightMap;
   /** Fires when the active cell changes */
   onActiveCellChange?: (address: string, cell: CellData | undefined) => void;
+  /**
+   * Controlled full-screen flag. Pair with `onFullScreenChange`. While on, the
+   * workbook covers the viewport in place (react-fancy's `useFullScreen`): it is
+   * not portalled, so the selection, an open edit and undo history survive.
+   */
+  fullScreen?: boolean;
+  /** Initial full-screen flag when uncontrolled. @default false */
+  defaultFullScreen?: boolean;
+  /** Fired when the toggle, Escape, an agent (`setFullScreen`) or the browser changes full screen. */
+  onFullScreenChange?: (fullScreen: boolean) => void;
+  /**
+   * `"overlay"` covers the viewport in place and always works, including in
+   * iframes and dialogs. `"native"` uses the browser Fullscreen API and falls
+   * back to the overlay when the browser refuses.
+   * @default "overlay"
+   */
+  fullScreenMode?: FullScreenMode;
 }
 
 export interface SpreadsheetContextValue {
@@ -89,6 +107,10 @@ export interface SpreadsheetContextValue {
   contextMenuItems?: SpreadsheetContextMenuItem[] | ((address: string) => SpreadsheetContextMenuItem[]);
   /** Consumer-provided cell highlights */
   highlights: CellHighlightMap;
+  /** Whether the workbook is full screen */
+  fullScreen: boolean;
+  /** Enter or leave full screen. Reported through `onFullScreenChange`. */
+  setFullScreen: (fullScreen: boolean) => void;
   /** @internal drag-to-select state */
   _isDragging: React.RefObject<boolean>;
 }

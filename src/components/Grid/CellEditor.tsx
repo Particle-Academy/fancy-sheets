@@ -39,6 +39,8 @@ export function CellEditor() {
       e.preventDefault();
       confirmEdit();
     } else if (e.key === "Escape") {
+      // Load-bearing: a full-screen workbook leaves on an Escape nobody has
+      // handled. This one cancels the edit and must do nothing else.
       e.preventDefault();
       cancelEdit();
     } else if (e.key === "Tab") {

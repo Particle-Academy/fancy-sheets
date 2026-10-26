@@ -10,6 +10,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-26
+
+### Added
+
+- **Full screen, built in.** `SheetWorkbook` and `Spreadsheet` take
+  `fullScreen` / `defaultFullScreen` / `onFullScreenChange` / `fullScreenMode`,
+  the same names as react-fancy's `Editor`, and the default toolbar has a
+  toggle at its trailing edge (the new `"fullScreen"` `ToolbarButton` group).
+  It is react-fancy's `useFullScreen`, not a copy of it: the workbook covers
+  the viewport in place, in the browser's top layer, so an ancestor with a
+  `transform` cannot trap it; scroll is locked, focus comes back on exit, and
+  the context menu stays visible. The grid takes the remaining height, so more
+  rows and columns show. Asked for by MOIC. **Nothing to do** unless you pass
+  an explicit `toolbarButtons` list and want the toggle: add `"fullScreen"`.
+- `useSpreadsheet()` returns `fullScreen` and `setFullScreen`, so custom chrome
+  and agents can drive it, and `<Spreadsheet.FullScreenToggle />` is the toggle
+  for custom toolbars.
+
+### Fixed
+
+- An Escape that cancels a sheet rename now calls `preventDefault`, so it no
+  longer also leaves full screen. One Escape, one step back. The cell editor
+  already did this; a comment there now says it is load-bearing.
+- **Typing on a selected cell no longer doubles the first character.** In a
+  real browser, typing "zz" into a cell gave "zzz". The key that starts the
+  edit seeds the editor, and the editor took focus before the browser's own
+  insertion ran, so the same key landed twice. That key is now cancelled. This
+  happened inside and outside full screen; nothing to do but upgrade.
+
+### Changed
+
+- **The `@particle-academy/react-fancy` peer floor moved from 5.47.0 to
+  5.61.1** (`>=5.61.1 <6.0.0`), because full screen uses `useFullScreen`,
+  `FullScreenProvider` and `FullScreen.Toggle`. They arrived in 5.61.0, and
+  5.61.1 lifts the overlay into the top layer, without which a workbook inside
+  a transformed ancestor (an animated tab panel, a centred dialog) goes "full
+  screen" inside that ancestor's box only. If your app is on an older 5.x,
+  update react-fancy along with this package. 5.61.1 adds no third-party
+  dependency over 5.49.0. Dev pin is now `^5.61.1`.
+
 ### Security
 
 - Update Vitest to 4.1.12 and patch the transitive undici development dependency for security fixes; dev toolchain only, nothing to do.

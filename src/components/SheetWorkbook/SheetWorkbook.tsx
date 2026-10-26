@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Spreadsheet } from "../Spreadsheet/Spreadsheet";
 import type { WorkbookData } from "../../types/sheet";
 import type { CellData, CellHighlightMap } from "../../types/cell";
-import type { SpreadsheetContextMenuItem } from "../Spreadsheet/Spreadsheet.types";
+import type { SpreadsheetContextMenuItem, SpreadsheetProps } from "../Spreadsheet/Spreadsheet.types";
 import type { ToolbarButton } from "../Toolbar/SpreadsheetToolbar";
 
 export interface SheetWorkbookProps {
@@ -37,6 +37,18 @@ export interface SheetWorkbookProps {
   highlights?: CellHighlightMap;
   /** Fires when the active cell changes */
   onActiveCellChange?: (address: string, cell: CellData | undefined) => void;
+  /**
+   * Controlled full-screen flag. Pair with `onFullScreenChange`. The toggle is
+   * in the toolbar (the `"fullScreen"` button group). Escape leaves, except an
+   * Escape that cancels a cell edit or a sheet rename, which does only that.
+   */
+  fullScreen?: SpreadsheetProps["fullScreen"];
+  /** Initial full-screen flag when uncontrolled. @default false */
+  defaultFullScreen?: SpreadsheetProps["defaultFullScreen"];
+  /** Fired when the toggle, Escape, an agent or the browser changes full screen. */
+  onFullScreenChange?: SpreadsheetProps["onFullScreenChange"];
+  /** `"overlay"` (default, always works) or `"native"` (browser Fullscreen API, falls back to the overlay). */
+  fullScreenMode?: SpreadsheetProps["fullScreenMode"];
 }
 
 export function SheetWorkbook({

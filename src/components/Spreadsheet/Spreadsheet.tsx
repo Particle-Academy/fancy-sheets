@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useEffect, useRef } from "react";
-import { cn } from "@particle-academy/react-fancy";
+import { cn, FullScreenProvider, useFullScreen } from "@particle-academy/react-fancy";
 import { SpreadsheetContext } from "./Spreadsheet.context";
 import { useSpreadsheetStore } from "../../hooks/use-spreadsheet-store";
 import { parseAddress, toAddress, expandRange, normalizeRange } from "../../engine/cell-utils";
@@ -9,6 +9,7 @@ import type { SpreadsheetProps, SpreadsheetContextValue } from "./Spreadsheet.ty
 import { SpreadsheetGrid } from "../Grid/SpreadsheetGrid";
 import { SpreadsheetToolbar } from "../Toolbar/SpreadsheetToolbar";
 import { SpreadsheetSheetTabs } from "../SheetTabs/SpreadsheetSheetTabs";
+import { SpreadsheetFullScreenToggle } from "./SpreadsheetFullScreenToggle";
 
 function SpreadsheetRoot({
   children,
@@ -24,7 +25,20 @@ function SpreadsheetRoot({
   contextMenuItems,
   highlights,
   onActiveCellChange,
+  fullScreen: fullScreenProp,
+  defaultFullScreen = false,
+  onFullScreenChange,
+  fullScreenMode = "overlay",
 }: SpreadsheetProps) {
+  // Full screen is the root itself covering the viewport (top layer, with a
+  // position: fixed fallback), never a portal: reparenting would remount the
+  // grid and drop the selection, an open cell edit and the scroll position.
+  const fs = useFullScreen<HTMLDivElement>({
+    fullScreen: fullScreenProp,
+    defaultFullScreen,
+    onFullScreenChange,
+    mode: fullScreenMode,
+  });
   const { state, actions } = useSpreadsheetStore(data ?? defaultData);
   const onChangeRef = useRef(onChange);
   const isExternalSync = useRef(false);
@@ -110,19 +124,33 @@ function SpreadsheetRoot({
       isCellActive,
       contextMenuItems,
       highlights: highlightsResolved,
+      fullScreen: fs.fullScreen,
+      setFullScreen: fs.setFullScreen,
       _isDragging: isDraggingRef,
     }),
-    [state, activeSheet, columnCount, rowCount, defaultColumnWidth, rowHeight, readOnly, actions, getColumnWidth, isCellSelected, isCellActive, contextMenuItems, highlightsResolved],
+    [state, activeSheet, columnCount, rowCount, defaultColumnWidth, rowHeight, readOnly, actions, getColumnWidth, isCellSelected, isCellActive, contextMenuItems, highlightsResolved, fs.fullScreen, fs.setFullScreen],
   );
 
   return (
     <SpreadsheetContext.Provider value={ctx}>
-      <div
-        data-fancy-sheets=""
-        className={cn("flex h-full flex-col overflow-hidden", className)}
-      >
-        {children}
-      </div>
+      {/* Makes <Spreadsheet.FullScreenToggle /> work anywhere inside, and keeps
+          the context menu and other portals inside the surface while it is
+          full screen, where the page behind is covered. */}
+      <FullScreenProvider value={fs}>
+        <div
+          {...fs.targetProps}
+          data-fancy-sheets=""
+          className={cn(
+            "flex h-full flex-col overflow-hidden",
+            className,
+            // The top-layer box is reset to transparent, so without a surface of
+            // its own the page would show through the toolbar and tab strip.
+            fs.fullScreen && "bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100",
+          )}
+        >
+          {children}
+        </div>
+      </FullScreenProvider>
     </SpreadsheetContext.Provider>
   );
 }
@@ -133,4 +161,5 @@ export const Spreadsheet = Object.assign(SpreadsheetRoot, {
   Toolbar: SpreadsheetToolbar,
   Grid: SpreadsheetGrid,
   SheetTabs: SpreadsheetSheetTabs,
+  FullScreenToggle: SpreadsheetFullScreenToggle,
 });
