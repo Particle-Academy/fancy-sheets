@@ -69,7 +69,9 @@ describe("sheet tabs", () => {
     // A row of plain buttons never announces which sheet you are on.
     const host = mount(<SheetWorkbook defaultData={workbook()} />);
 
-    const list = host.querySelector('[data-fancy-sheets-tabs][role="tablist"]');
+    // The tablist sits INSIDE the tab bar: the bar also carries the add and
+    // delete controls, which a tablist may not contain.
+    const list = host.querySelector('[data-fancy-sheets-tabs] [role="tablist"]');
     expect(list).not.toBeNull();
 
     const tabs = [...host.querySelectorAll('[role="tab"]')];

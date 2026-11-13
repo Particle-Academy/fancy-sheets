@@ -182,6 +182,15 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
         <div
           ref={containerRef}
           data-fancy-sheets-grid=""
+          // A grid of rows of cells. The cells were role="gridcell" with no
+          // row or grid above them (axe aria-required-parent, critical).
+          // Counts include the header row and the row-number column.
+          role="grid"
+          aria-label={activeSheet.name}
+          aria-rowcount={rowCount + 1}
+          aria-colcount={columnCount + 1}
+          aria-multiselectable="true"
+          aria-readonly={readOnly || undefined}
           className={cn("relative h-full overflow-auto bg-white focus:outline-none dark:bg-zinc-900", className)}
           tabIndex={0}
           onKeyDown={handleKeyDown}
@@ -198,6 +207,8 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
               return (
                 <div
                   key={rowIdx}
+                  role="row"
+                  aria-rowindex={rowIdx + 2}
                   className={cn(
                     "flex",
                     // Frozen rows need a solid background so scrolling content

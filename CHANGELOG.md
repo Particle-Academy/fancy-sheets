@@ -17,6 +17,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when the fancy-labs lab has certified that exact version and commit. Consumers
   do nothing; this changes how releases are cut, not what the package does.
 
+### Fixed
+
+- **The grid is a grid** (axe `aria-required-parent`, critical, lab run 601,
+  K29). Every cell was `role="gridcell"` with no row or grid above it, so a
+  screen reader met thousands of loose cells and no table. `[data-fancy-sheets-grid]`
+  is now `role="grid"`, named after the sheet, with `aria-rowcount` /
+  `aria-colcount` and `aria-multiselectable`; each row is `role="row"`; the
+  column letters are `columnheader`s and the row numbers `rowheader`s, and
+  cells and headers carry `aria-colindex` and `aria-selected`. Nothing visual
+  changes. Nothing to do on upgrade.
+- **The sheet tablist holds only tabs** (axe `aria-required-children`,
+  critical). The add and delete buttons sat inside `role="tablist"`. The
+  tablist is now an inner `[data-fancy-sheets-tablist]` inside the
+  `[data-fancy-sheets-tabs]` bar, and the add and delete controls are its
+  siblings in the bar. **Visible change:** the delete control for the active
+  sheet now sits after the tabs, beside "Add sheet", instead of beside its tab
+  (it carries `[data-fancy-sheets-delete-sheet="<id>"]`). If you selected the
+  tablist as `[data-fancy-sheets-tabs][role="tablist"]`, use
+  `[data-fancy-sheets-tabs] [role="tablist"]`; `[data-fancy-sheets-tabs] button`
+  still finds the controls.
+- **Row numbers and column letters are readable** (axe `color-contrast`,
+  4.39:1). They were `text-zinc-500` on the `zinc-100` header; now
+  `text-zinc-600`. Dark mode is unchanged.
+- **The decimal-places buttons' visible glyphs no longer contradict their
+  names** (axe `label-content-name-mismatch`). The ".0 ←" / ".00 →" glyphs are
+  `aria-hidden`, so the name is the `aria-label` alone.
+
 ## [0.13.1] - 2026-11-01
 
 ### Changed

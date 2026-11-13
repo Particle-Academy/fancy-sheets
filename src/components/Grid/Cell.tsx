@@ -117,6 +117,8 @@ export const Cell = memo(function Cell({ address, row, col }: CellProps) {
       data-active={isActive || undefined}
       data-highlighted={!!highlight || undefined}
       role="gridcell"
+      aria-colindex={col + 2}
+      aria-selected={isSelected}
       className={cn(
         "relative flex items-center truncate border-r border-b border-zinc-200 bg-white px-1.5 text-[13px] select-none dark:border-zinc-700 dark:bg-zinc-900",
         isActive && "ring-2 ring-inset ring-blue-500",

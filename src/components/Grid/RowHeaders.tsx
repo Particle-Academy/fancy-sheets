@@ -53,11 +53,15 @@ export function RowHeader({ rowIndex }: RowHeadersProps) {
   return (
     <div
       data-fancy-sheets-row-header=""
+      role="rowheader"
+      aria-colindex={1}
+      aria-selected={isRowSelected}
       className={cn(
         "flex shrink-0 cursor-pointer items-center justify-center border-r border-b border-zinc-300 text-[11px] font-medium select-none hover:bg-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-700",
         isRowSelected
           ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-          : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400",
+          : // zinc-600, not 500: 500 on zinc-100 is 4.39:1 at 11px (axe).
+            "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
       )}
       style={{ width: 48, minWidth: 48, height: rowHeight }}
       onMouseDown={handleMouseDown}

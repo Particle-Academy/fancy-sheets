@@ -42,11 +42,14 @@ export function ColumnHeaders() {
   return (
     <div
       data-fancy-sheets-column-headers=""
+      role="row"
+      aria-rowindex={1}
       className="flex border-b border-zinc-300 bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800"
       style={{ height: rowHeight }}
     >
-      {/* Corner cell */}
+      {/* Corner cell: decoration, so out of the grid's structure. */}
       <div
+        aria-hidden="true"
         className="flex shrink-0 items-center justify-center border-r border-zinc-300 bg-zinc-100 text-[11px] font-medium text-zinc-400 dark:border-zinc-600 dark:bg-zinc-800"
         style={{ width: 48, minWidth: 48 }}
       />
@@ -65,11 +68,15 @@ export function ColumnHeaders() {
         return (
           <div
             key={i}
+            role="columnheader"
+            aria-colindex={i + 2}
+            aria-selected={isColSelected}
             className={cn(
               "relative flex shrink-0 cursor-pointer items-center justify-center border-r border-zinc-300 text-[11px] font-medium select-none hover:bg-zinc-200 dark:border-zinc-600 dark:hover:bg-zinc-700",
               isColSelected
                 ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-                : "text-zinc-500 dark:text-zinc-400",
+                : // zinc-600, not 500: 500 on the zinc-100 header is 4.39:1.
+                  "text-zinc-600 dark:text-zinc-400",
             )}
             style={{ width: getColumnWidth(i), minWidth: getColumnWidth(i) }}
             onMouseDown={(e) => handleColumnMouseDown(i, e)}
