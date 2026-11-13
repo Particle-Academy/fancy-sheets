@@ -74,7 +74,10 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
       if (e.key === "ArrowDown") { e.preventDefault(); navigate("down", e.shiftKey); return; }
       if (e.key === "ArrowLeft") { e.preventDefault(); navigate("left", e.shiftKey); return; }
       if (e.key === "ArrowRight") { e.preventDefault(); navigate("right", e.shiftKey); return; }
-      if (e.key === "Tab") { e.preventDefault(); navigate(e.shiftKey ? "left" : "right"); return; }
+      // Tab / Shift+Tab are NOT intercepted here (WAI-ARIA APG data grid): the
+      // grid is one tab stop and Tab moves focus out of it. Arrow keys move
+      // between cells. Cancelling Tab trapped keyboard users (WCAG 2.1.2).
+      // While a cell is being edited, CellEditor's own Tab still commits.
       if (e.key === "Enter") { e.preventDefault(); if (!readOnly) startEdit(); return; }
 
       // Copy
@@ -191,7 +194,12 @@ export function SpreadsheetGrid({ className }: SpreadsheetGridProps) {
           aria-colcount={columnCount + 1}
           aria-multiselectable="true"
           aria-readonly={readOnly || undefined}
-          className={cn("relative h-full overflow-auto bg-white focus:outline-none dark:bg-zinc-900", className)}
+          // The kit focus ring, inset so the scroll container does not clip it.
+          className={cn(
+            "relative h-full overflow-auto bg-white dark:bg-zinc-900",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--fancy-focus,var(--color-blue-500))] dark:focus-visible:ring-[color:var(--fancy-focus-dark,var(--color-blue-400))]",
+            className,
+          )}
           tabIndex={0}
           onKeyDown={handleKeyDown}
         >

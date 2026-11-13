@@ -604,7 +604,7 @@ Key properties:
 | Shift + arrows | Extend selection |
 | Enter / F2 | Start editing |
 | Esc | Cancel edit |
-| Tab / Shift+Tab | Move right/left |
+| Tab / Shift+Tab | Move focus out of the grid (the grid is one tab stop); while editing a cell, Tab commits the edit |
 | Ctrl/Cmd + C / V | Copy / Paste |
 | Ctrl/Cmd + Z / Y | Undo / Redo |
 | Ctrl/Cmd + B / I | Bold / Italic |

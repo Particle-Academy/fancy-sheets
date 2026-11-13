@@ -258,7 +258,7 @@ function DefaultToolbar({ extra, buttons }: { extra?: React.ReactNode; buttons: 
           <input
             aria-label={`Formula bar — ${selection.activeCell}`}
             data-fancy-sheets-formula-input=""
-            className="flex-1 bg-transparent text-[13px] outline-none dark:text-zinc-100"
+            className="flex-1 rounded-sm bg-transparent text-[13px] dark:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--fancy-focus,var(--color-blue-500))] dark:focus-visible:ring-[color:var(--fancy-focus-dark,var(--color-blue-400))]"
             value={formulaBarValue}
             onChange={handleFormulaBarChange}
             onKeyDown={handleFormulaBarKeyDown}

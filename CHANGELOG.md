@@ -19,6 +19,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The grid no longer traps keyboard focus (WCAG 2.1.2).** Tab and Shift+Tab
+  on the grid were cancelled and turned into "move one cell right / left", so a
+  keyboard user who tabbed into a `Spreadsheet`, `Sheet` or `WorkbookFileView`
+  could never tab out. Following the WAI-ARIA APG data-grid pattern, the grid is
+  now one tab stop: when no cell is being edited, Tab / Shift+Tab move focus out
+  of it, and the arrow keys move between cells as before. While a cell is being
+  edited, Tab still commits the edit, unchanged.
+  **Behaviour change:** Tab no longer moves the active cell. Use the arrow keys
+  (Shift+arrows still extend the selection). Nothing to do unless your users
+  relied on Tab to step across cells.
+- **The grid and the formula bar show a focus ring.** `[data-fancy-sheets-grid]`
+  was `focus:outline-none` and the formula bar input `outline-none`, each with
+  nothing in its place. Both now carry the kit ring (`focus-visible:ring-2
+  ring-inset`, `--fancy-focus` / `--fancy-focus-dark`) on the focused element
+  itself. Consumers do nothing.
 - **The grid is a grid** (axe `aria-required-parent`, critical, lab run 601,
   K29). Every cell was `role="gridcell"` with no row or grid above it, so a
   screen reader met thousands of loose cells and no table. `[data-fancy-sheets-grid]`
