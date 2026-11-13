@@ -216,10 +216,13 @@ function DefaultToolbar({ extra, buttons }: { extra?: React.ReactNode; buttons: 
   if (buttons.has("decimals")) {
     groups.push(
       <React.Fragment key="decimals">
-        <Button aria-label={`Decrease decimal places (currently ${currentDecimals})`} type="button" variant="ghost" size="xs" className={btnClass} onClick={() => setCellFormat(selectedAddresses, { decimals: Math.max(0, currentDecimals - 1) })} disabled={readOnly || currentDecimals <= 0} title={`Decrease decimal places (currently ${currentDecimals})`}>
+        {/* The name carries the ".0" / ".00" the button shows (WCAG 2.5.3, axe
+            label-content-name-mismatch): a speech user says what they see, and
+            axe compares visible text whether or not it is aria-hidden. */}
+        <Button aria-label={`Decrease decimal places, .0 (currently ${currentDecimals})`} type="button" variant="ghost" size="xs" className={btnClass} onClick={() => setCellFormat(selectedAddresses, { decimals: Math.max(0, currentDecimals - 1) })} disabled={readOnly || currentDecimals <= 0} title={`Decrease decimal places (currently ${currentDecimals})`}>
           <span aria-hidden="true"><span className="text-[10px]">.0</span><span className="text-[8px]">←</span></span>
         </Button>
-        <Button aria-label={`Increase decimal places (currently ${currentDecimals})`} type="button" variant="ghost" size="xs" className={btnClass} onClick={() => setCellFormat(selectedAddresses, { decimals: currentDecimals + 1 })} disabled={readOnly} title={`Increase decimal places (currently ${currentDecimals})`}>
+        <Button aria-label={`Increase decimal places, .00 (currently ${currentDecimals})`} type="button" variant="ghost" size="xs" className={btnClass} onClick={() => setCellFormat(selectedAddresses, { decimals: currentDecimals + 1 })} disabled={readOnly} title={`Increase decimal places (currently ${currentDecimals})`}>
           <span aria-hidden="true"><span className="text-[10px]">.00</span><span className="text-[8px]">→</span></span>
         </Button>
       </React.Fragment>,

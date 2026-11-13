@@ -95,23 +95,22 @@ describe("grid structure", () => {
 });
 
 describe("decimal buttons", () => {
-  it("do not show text that is missing from their name", () => {
-    // axe label-content-name-mismatch: ".0" / ".00" shown, absent from the
-    // aria-label. The glyphs are decoration; the name says what they do.
+  it("carry the text they show in their name", () => {
+    // axe label-content-name-mismatch (WCAG 2.5.3): ".0" / ".00" shown,
+    // absent from the aria-label. Marking the glyphs aria-hidden did NOT
+    // clear it: axe compares the text a sighted user SEES, whatever its ARIA
+    // state, and still flagged both buttons at 768 and 1280 px in lab run 651.
+    // A speech user says what they see, so the name has to contain it.
     const host = mount(<SheetWorkbook defaultData={createEmptyWorkbook()} />);
     const buttons = [...host.querySelectorAll("[data-fancy-sheets-toolbar] button")].filter((b) =>
       /decimal places/.test(b.getAttribute("aria-label") ?? ""),
     );
     expect(buttons).toHaveLength(2);
     for (const b of buttons) {
-      const walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
-      let seen = 0;
-      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-        if (!(n.textContent ?? "").trim()) continue;
-        seen++;
-        expect(n.parentElement!.closest('[aria-hidden="true"]')).not.toBeNull();
-      }
-      expect(seen).toBeGreaterThan(0);
+      // The arrows are pictures; the digits are the label.
+      const shown = (b.textContent ?? "").replace(/[←→\s]/g, "");
+      expect(shown).toMatch(/^\.0+$/);
+      expect(b.getAttribute("aria-label")).toContain(shown);
     }
   });
 });

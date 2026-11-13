@@ -34,6 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   nothing in its place. Both now carry the kit ring (`focus-visible:ring-2
   ring-inset`, `--fancy-focus` / `--fancy-focus-dark`) on the focused element
   itself. Consumers do nothing.
+- **The decimal-places buttons' names contain the text they show** (WCAG 2.5.3,
+  axe `label-content-name-mismatch`, serious, still flagged at 768 and 1280 px
+  in fancy-labs run 651). Marking the `.0` / `.00` glyphs `aria-hidden` did not
+  clear it: axe compares the text a sighted user sees, whatever its ARIA state.
+  The names are now "Decrease decimal places, .0 (currently N)" and "Increase
+  decimal places, .00 (currently N)"; the tooltips are unchanged. **If a test
+  or agent matched the old name exactly**, match the prefix
+  `Decrease decimal places` / `Increase decimal places` instead.
 - **The grid is a grid** (axe `aria-required-parent`, critical, lab run 601,
   K29). Every cell was `role="gridcell"` with no row or grid above it, so a
   screen reader met thousands of loose cells and no table. `[data-fancy-sheets-grid]`

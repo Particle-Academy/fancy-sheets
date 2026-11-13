@@ -45,6 +45,6 @@ describe("a formatted cell in the grid", () => {
     expect(host.textContent).toContain("18.4%");
 
     const decrease = host.querySelector('[data-fancy-sheets-toolbar] button[aria-label^="Decrease decimal places"]');
-    expect(decrease?.getAttribute("aria-label")).toBe("Decrease decimal places (currently 1)");
+    expect(decrease?.getAttribute("aria-label")).toBe("Decrease decimal places, .0 (currently 1)");
   });
 });
